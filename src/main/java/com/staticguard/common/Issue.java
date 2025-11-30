@@ -1,4 +1,4 @@
-package com.staticguard.analyzer;
+package com.staticguard.common;
 
 public class Issue {
     private final String message;

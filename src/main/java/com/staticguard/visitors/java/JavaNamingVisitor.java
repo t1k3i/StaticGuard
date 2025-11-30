@@ -4,7 +4,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.staticguard.analyzer.RuleContext;
+import com.staticguard.common.RuleContext;
 
 import java.util.regex.Pattern;
 

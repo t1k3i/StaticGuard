@@ -1,4 +1,4 @@
-package com.staticguard.analyzer;
+package com.staticguard.common;
 
 import java.util.ArrayList;
 import java.util.List;
