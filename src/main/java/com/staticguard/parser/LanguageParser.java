@@ -1,15 +1,13 @@
 package com.staticguard.parser;
 
+import com.staticguard.enums.Language;
+
 import java.io.File;
 import java.io.IOException;
 
 public abstract class LanguageParser<T> {
     protected final File file;
     protected final Language language;
-
-    public enum Language {
-        C, JAVA
-    }
 
     protected LanguageParser(File file, Language language) {
         this.file = file;

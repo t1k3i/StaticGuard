@@ -2,6 +2,7 @@ package com.staticguard.parser;
 
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.staticguard.enums.Language;
 
 import java.io.File;
 import java.io.FileNotFoundException;
