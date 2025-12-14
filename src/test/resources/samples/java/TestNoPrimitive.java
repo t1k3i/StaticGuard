@@ -8,6 +8,7 @@ public class TestNoPrimitive {
         double pi = 3.14;
         for (int i = 0; i < 10; i++) {
             while (true) {
+                isPositive(2);
             }
         }
         for (int i = 0; i < 10; i++) {

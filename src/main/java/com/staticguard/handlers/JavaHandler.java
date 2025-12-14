@@ -1,6 +1,7 @@
 package com.staticguard.handlers;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.staticguard.analyzers.java.CallGraphVisitorAnalyzer;
 import com.staticguard.analyzers.java.ForbiddenMethodVisitorAnalyzer;
 import com.staticguard.common.RuleContext;
 import com.staticguard.cli.CLIOptionsConfig;
@@ -28,6 +29,8 @@ public class JavaHandler implements LanguageHandler {
             manager.addVisitor(new JavaNamingVisitorAnalyzer(context));
 
             manager.addVisitor(new LoopNestingVisitorAnalyzer());
+
+            manager.addVisitor(new CallGraphVisitorAnalyzer());
         }
 
         if (!config.getForbiddenMethods().isEmpty()) {
