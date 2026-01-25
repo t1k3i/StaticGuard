@@ -9,9 +9,7 @@ import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(
@@ -37,16 +35,38 @@ public class CLIOptions implements Callable<Integer> {
     private boolean development;
 
     @CommandLine.Option(
-            names = "--forbid",
+            names = "--forbid-methods",
             description = "Forbidden method calls (e.g. System.out.println)",
             split = ","
     )
-    List<String> forbiddenMethods;
+    List<String> forbiddenMethods = new ArrayList<>();;
+
+    @CommandLine.Option(
+            names = "--forbid-types",
+            description = "Forbidden types (e.g. int)",
+            split = ","
+    )
+    List<String> forbiddenTypes = new ArrayList<>();;
+
+    @CommandLine.Option(
+            names = "--allow",
+            description = "Allowed calls: caller=callee1,callee2",
+            converter = AllowedCallsConverter.class
+    )
+    private List<Map.Entry<String, Set<String>>> forbiddenCalls = new ArrayList<>();
 
     @Override
     public Integer call() {
+        Map<String, Set<String>> forbiddenCallsMap = new HashMap<>();
+        for (Map.Entry<String, Set<String>> e : forbiddenCalls) {
+            forbiddenCallsMap
+                    .computeIfAbsent(e.getKey(), k -> new HashSet<>())
+                    .addAll(e.getValue());
+        }
+
         Set<String> forbidden = new HashSet<>(forbiddenMethods);
-        CLIOptionsConfig config = new CLIOptionsConfig(runAll, true, development, forbidden);
+        Set<String> forbiddenTypeSet = new HashSet<>(forbiddenTypes);
+        CLIOptionsConfig config = new CLIOptionsConfig(runAll, true, development, forbidden, forbiddenTypeSet, forbiddenCallsMap);
 
         try {
             if (file.isDirectory()) {

@@ -1,5 +1,6 @@
 package com.staticguard.cli;
 
+import java.util.Map;
 import java.util.Set;
 
 public class CLIOptionsConfig {
@@ -7,12 +8,16 @@ public class CLIOptionsConfig {
     private final boolean addComments;
     private final boolean development;
     private final Set<String> forbiddenMethods;
+    private final Set<String> forbiddenTypes;
+    private final Map<String, Set<String>> allowedCalls;
 
-    public CLIOptionsConfig(boolean runAll, boolean addComments, boolean development, Set<String> forbiddenMethods) {
+    public CLIOptionsConfig(boolean runAll, boolean addComments, boolean development, Set<String> forbiddenMethods, Set<String> forbiddenTypes, Map<String, Set<String>> allowedCalls) {
         this.runAll = runAll;
         this.addComments = addComments;
         this.development = development;
         this.forbiddenMethods = forbiddenMethods;
+        this.forbiddenTypes = forbiddenTypes;
+        this.allowedCalls = allowedCalls;
     }
 
     public boolean isRunAll() {
@@ -29,5 +34,13 @@ public class CLIOptionsConfig {
 
     public Set<String> getForbiddenMethods() {
         return forbiddenMethods;
+    }
+
+    public Set<String> getForbiddenTypes() {
+        return forbiddenTypes;
+    }
+
+    public Map<String, Set<String>> getAllowedCalls() {
+        return allowedCalls;
     }
 }

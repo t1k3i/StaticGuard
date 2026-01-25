@@ -1,0 +1,44 @@
+package com.staticguard.visitors.java;
+
+import com.github.javaparser.ast.body.MethodDeclaration;
+import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.staticguard.common.RuleContext;
+
+import java.util.Map;
+import java.util.Set;
+
+public class AllowedCallsVisitor extends VoidVisitorAdapter<RuleContext> {
+
+    private final Map<String, Set<String>> allowedCalls;
+
+    private String currentMethod = null;
+
+    public AllowedCallsVisitor(Map<String, Set<String>> allowedCalls) {
+        this.allowedCalls = allowedCalls;
+    }
+
+    @Override
+    public void visit(MethodDeclaration n, RuleContext ctx) {
+        currentMethod = n.getNameAsString();
+        super.visit(n, ctx);
+        currentMethod = null;
+    }
+
+    @Override
+    public void visit(MethodCallExpr n, RuleContext ctx) {
+        super.visit(n, ctx);
+
+        if (currentMethod == null) return;
+
+        String call = n.getNameAsString();
+
+        Set<String> forbidden = allowedCalls.get(currentMethod);
+        if (forbidden != null && forbidden.contains(call)) {
+            ctx.report(
+                    "Method '" + currentMethod + "' is not allowed to call '" + call + "'",
+                    n.getBegin().map(p -> p.line).orElse(-1)
+            );
+        }
+    }
+}
