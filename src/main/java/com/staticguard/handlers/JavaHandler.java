@@ -2,6 +2,7 @@ package com.staticguard.handlers;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.analyzers.java.*;
+import com.staticguard.common.ProjectContext;
 import com.staticguard.common.RuleContext;
 import com.staticguard.cli.CLIOptionsConfig;
 import com.staticguard.analyzers.VisitorManager;
@@ -10,14 +11,14 @@ import java.io.File;
 
 public class JavaHandler implements LanguageHandler {
     @Override
-    public void handle(Object root, CLIOptionsConfig config, File sourceFile) {
+    public void handle(Object root, CLIOptionsConfig config, File sourceFile, ProjectContext projectContext) {
         CompilationUnit cu = (CompilationUnit) root;
         VisitorManager<CompilationUnit> manager = new VisitorManager<>(cu);
 
         RuleContext context = new RuleContext(sourceFile);
 
         if (config.isDevelopment()) {
-            manager.addVisitor(new UsedTypesVisitorAnalyzer(context));
+            manager.addVisitor(new ClassDependencyVisitorAnalyzer(projectContext.projectClasses));
             manager.runVisitors();
             return;
         }
@@ -30,6 +31,8 @@ public class JavaHandler implements LanguageHandler {
             manager.addVisitor(new CallGraphVisitorAnalyzer());
 
             manager.addVisitor(new UsedTypesVisitorAnalyzer(context));
+
+            manager.addVisitor(new ClassDependencyVisitorAnalyzer(projectContext.projectClasses));
         }
 
         if (!config.getForbiddenMethods().isEmpty()) {
@@ -42,6 +45,10 @@ public class JavaHandler implements LanguageHandler {
 
         if (!config.getAllowedCalls().isEmpty()) {
             manager.addVisitor(new AllowedCallsVisitorAnalyzer(context, config.getAllowedCalls()));
+        }
+
+        if (config.getMode() != null) {
+            manager.addVisitor(new PrimitiveTypeVisitorAnalyzer(config.getMode(), context));
         }
 
         manager.runVisitors();

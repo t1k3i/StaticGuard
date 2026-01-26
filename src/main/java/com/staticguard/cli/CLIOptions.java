@@ -1,12 +1,17 @@
 package com.staticguard.cli;
 
+import com.github.javaparser.ast.CompilationUnit;
+import com.staticguard.analyzers.java.ProjectClassCollectorAnalyzer;
+import com.staticguard.common.ProjectContext;
 import com.staticguard.enums.Language;
 import com.staticguard.handlers.CHandler;
 import com.staticguard.handlers.JavaHandler;
 import com.staticguard.parser.LanguageParser;
 import com.staticguard.parser.ParserFactory;
+import com.staticguard.visitors.java.PrimitiveTypeVisitor;
 import picocli.CommandLine;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -49,11 +54,18 @@ public class CLIOptions implements Callable<Integer> {
     List<String> forbiddenTypes = new ArrayList<>();;
 
     @CommandLine.Option(
-            names = "--allow",
-            description = "Allowed calls: caller=callee1,callee2",
-            converter = AllowedCallsConverter.class
+            names = "--deny",
+            description = "Forbidden calls: caller=callee1,callee2",
+            converter = DeniedCallsConverter.class
     )
     private List<Map.Entry<String, Set<String>>> forbiddenCalls = new ArrayList<>();
+
+    @CommandLine.Option(
+            names = "--primitive-mode",
+            description = "Check primitive types: ${COMPLETION-CANDIDATES}",
+            arity = "1"
+    )
+    private PrimitiveTypeVisitor.Mode primitiveMode;
 
     @Override
     public Integer call() {
@@ -66,13 +78,16 @@ public class CLIOptions implements Callable<Integer> {
 
         Set<String> forbidden = new HashSet<>(forbiddenMethods);
         Set<String> forbiddenTypeSet = new HashSet<>(forbiddenTypes);
-        CLIOptionsConfig config = new CLIOptionsConfig(runAll, true, development, forbidden, forbiddenTypeSet, forbiddenCallsMap);
+        CLIOptionsConfig config = new CLIOptionsConfig(runAll, true, development, forbidden, forbiddenTypeSet, forbiddenCallsMap, primitiveMode);
 
         try {
             if (file.isDirectory()) {
                 handleProject(file, config);
             } else {
-                handleSingleFile(file, config);
+                ProjectContext projectContext = new ProjectContext();
+                List<File> sourceFiles = List.of(file);
+                handlePreProject(sourceFiles, projectContext);
+                handleSingleFile(file, config, projectContext);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,7 +122,7 @@ public class CLIOptions implements Callable<Integer> {
         };
     }
 
-    private void handleSingleFile(File file, CLIOptionsConfig config) throws Exception {
+    private void handleSingleFile(File file, CLIOptionsConfig config, ProjectContext projectContext) throws Exception {
         LanguageParser<?> parser = ParserFactory.createParser(file);
 
         System.out.println("Parsing file: " + file.getName());
@@ -115,8 +130,8 @@ public class CLIOptions implements Callable<Integer> {
         System.out.println("Parsing succeeded.");
 
         switch (parser.getLanguage()) {
-            case C -> new CHandler().handle(ast, config, file);
-            case JAVA -> new JavaHandler().handle(ast, config, file);
+            case C -> new CHandler().handle(ast, config, file, projectContext);
+            case JAVA -> new JavaHandler().handle(ast, config, file, projectContext);
         }
     }
 
@@ -131,8 +146,23 @@ public class CLIOptions implements Callable<Integer> {
 
         List<File> sourceFiles = collectSourceFiles(dir, projectLang);
 
+        ProjectContext projectContext = new ProjectContext();
+        handlePreProject(sourceFiles, projectContext);
+
         for (File f : sourceFiles) {
-            handleSingleFile(f, config);
+            handleSingleFile(f, config, projectContext);
+        }
+    }
+
+    private void handlePreProject(List<File> sourceFiles, ProjectContext projectContext) throws Exception {
+        for (File f : sourceFiles) {
+            LanguageParser<?> parser = ParserFactory.createParser(f);
+            Object ast = parser.parse();
+
+            if (parser.getLanguage() == Language.JAVA) {
+                new ProjectClassCollectorAnalyzer(projectContext)
+                        .runVisitor((CompilationUnit) ast);
+            }
         }
     }
 }

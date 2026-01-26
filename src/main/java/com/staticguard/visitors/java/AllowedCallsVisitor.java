@@ -10,12 +10,12 @@ import java.util.Set;
 
 public class AllowedCallsVisitor extends VoidVisitorAdapter<RuleContext> {
 
-    private final Map<String, Set<String>> allowedCalls;
+    private final Map<String, Set<String>> deniedCalls;
 
     private String currentMethod = null;
 
-    public AllowedCallsVisitor(Map<String, Set<String>> allowedCalls) {
-        this.allowedCalls = allowedCalls;
+    public AllowedCallsVisitor(Map<String, Set<String>> deniedCalls) {
+        this.deniedCalls = deniedCalls;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class AllowedCallsVisitor extends VoidVisitorAdapter<RuleContext> {
 
         String call = n.getNameAsString();
 
-        Set<String> forbidden = allowedCalls.get(currentMethod);
+        Set<String> forbidden = deniedCalls.get(currentMethod);
         if (forbidden != null && forbidden.contains(call)) {
             ctx.report(
                     "Method '" + currentMethod + "' is not allowed to call '" + call + "'",

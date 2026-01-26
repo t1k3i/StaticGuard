@@ -5,7 +5,7 @@ import picocli.CommandLine.ITypeConverter;
 import java.util.Map;
 import java.util.Set;
 
-public class AllowedCallsConverter implements ITypeConverter<Map.Entry<String, Set<String>>> {
+public class DeniedCallsConverter implements ITypeConverter<Map.Entry<String, Set<String>>> {
     @Override
     public Map.Entry<String, Set<String>> convert(String value) {
         String[] parts = value.split("=", 2);

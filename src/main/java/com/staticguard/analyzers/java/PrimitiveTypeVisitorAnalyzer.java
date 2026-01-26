@@ -3,23 +3,20 @@ package com.staticguard.analyzers.java;
 import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.analyzers.Analyzer;
 import com.staticguard.common.RuleContext;
-import com.staticguard.visitors.java.AllowedCallsVisitor;
+import com.staticguard.visitors.java.PrimitiveTypeVisitor;
 
-import java.util.Map;
-import java.util.Set;
-
-public class AllowedCallsVisitorAnalyzer implements Analyzer<CompilationUnit>  {
+public class PrimitiveTypeVisitorAnalyzer implements Analyzer<CompilationUnit> {
+    private final PrimitiveTypeVisitor.Mode mode;
     private final RuleContext arg;
-    private final Map<String, Set<String>> deniedCalls;
 
-    public AllowedCallsVisitorAnalyzer(RuleContext arg, Map<String, Set<String>> deniedCalls) {
+    public PrimitiveTypeVisitorAnalyzer(PrimitiveTypeVisitor.Mode mode, RuleContext arg) {
+        this.mode = mode;
         this.arg = arg;
-        this.deniedCalls = deniedCalls;
     }
 
     @Override
     public void runVisitor(CompilationUnit cu) {
-        cu.accept(new AllowedCallsVisitor(deniedCalls), arg);
+        cu.accept(new PrimitiveTypeVisitor(mode), arg);
     }
 
     @Override
