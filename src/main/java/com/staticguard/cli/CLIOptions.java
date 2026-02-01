@@ -3,6 +3,7 @@ package com.staticguard.cli;
 import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.analyzers.java.ProjectClassCollectorAnalyzer;
 import com.staticguard.common.ProjectContext;
+import com.staticguard.enums.ControlFlowRule;
 import com.staticguard.enums.Language;
 import com.staticguard.handlers.CHandler;
 import com.staticguard.handlers.JavaHandler;
@@ -11,7 +12,6 @@ import com.staticguard.parser.ParserFactory;
 import com.staticguard.visitors.java.PrimitiveTypeVisitor;
 import picocli.CommandLine;
 
-import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -31,13 +31,81 @@ public class CLIOptions implements Callable<Integer> {
             names = {"--lang"},
             description = "Project language: java or c (required for directories)"
     )
-    private String language;
+    protected String language;
 
     @CommandLine.Option(names = "--all", description = "Run all visitors")
-    private boolean runAll;
+    protected boolean runAll;
 
     @CommandLine.Option(names = "--dev", description = "Run just one test visitor you are developing")
-    private boolean development;
+    protected boolean development;
+
+    /*  INFO  */
+
+    @CommandLine.Option(
+            names = "--info",
+            description = "Run all informational visitors"
+    )
+    protected boolean runInfo;
+
+    @CommandLine.Option(
+            names = "--call-graph",
+            description = "Analyze method call graph"
+    )
+    protected boolean callGraph;
+
+    @CommandLine.Option(
+            names = "--class-deps",
+            description = "Analyze class dependencies"
+    )
+    protected boolean classDependencies;
+
+    @CommandLine.Option(
+            names = "--used-types",
+            description = "Report used types"
+    )
+    protected boolean usedTypes;
+
+    @CommandLine.Option(
+            names = "--loop-nesting",
+            description = "Detect deeply nested loops"
+    )
+    protected boolean loopNesting;
+
+    /* GOOD PRACTICES */
+
+    @CommandLine.Option(
+            names = "--good-practices",
+            description = "Run all good-practice visitors"
+    )
+    protected boolean runGoodPractices;
+
+    @CommandLine.Option(
+            names = "--unused-imports",
+            description = "Detect unused imports"
+    )
+    protected boolean unusedImports;
+
+    @CommandLine.Option(
+            names = "--unused-locals",
+            description = "Detect unused local variables"
+    )
+    protected boolean unusedLocals;
+
+    @CommandLine.Option(
+            names = "--naming",
+            description = "Check Java naming conventions"
+    )
+    protected boolean naming;
+
+    @CommandLine.Option(
+            names = "--long-methods",
+            description = "Detect long methods (default: ${DEFAULT-VALUE} lines)",
+            defaultValue = "30",
+            arity = "0..1"
+    )
+    protected Integer longMethodsMaxLines;
+
+    /* FORBIDDEN */
 
     @CommandLine.Option(
             names = "--forbid-methods",
@@ -58,27 +126,31 @@ public class CLIOptions implements Callable<Integer> {
             description = "Forbidden calls: caller=callee1,callee2",
             converter = DeniedCallsConverter.class
     )
-    private List<Map.Entry<String, Set<String>>> forbiddenCalls = new ArrayList<>();
+    protected List<Map.Entry<String, Set<String>>> forbiddenCalls = new ArrayList<>();
 
     @CommandLine.Option(
             names = "--primitive-mode",
             description = "Check primitive types: ${COMPLETION-CANDIDATES}",
             arity = "1"
     )
-    private PrimitiveTypeVisitor.Mode primitiveMode;
+    protected PrimitiveTypeVisitor.Mode primitiveMode;
+
+    @CommandLine.Option(
+            names = "--forbid-control-flow",
+            description = "Forbidden control flow constructs (break,continue,return,instanceof)",
+            split = ","
+    )
+    protected Set<ControlFlowRule> forbiddenControlFlow = EnumSet.noneOf(ControlFlowRule.class);
+
+    @CommandLine.Option(
+            names = "--forbid-field-access",
+            description = "Forbid direct field access"
+    )
+    protected boolean forbidFieldAccess;
 
     @Override
     public Integer call() {
-        Map<String, Set<String>> forbiddenCallsMap = new HashMap<>();
-        for (Map.Entry<String, Set<String>> e : forbiddenCalls) {
-            forbiddenCallsMap
-                    .computeIfAbsent(e.getKey(), k -> new HashSet<>())
-                    .addAll(e.getValue());
-        }
-
-        Set<String> forbidden = new HashSet<>(forbiddenMethods);
-        Set<String> forbiddenTypeSet = new HashSet<>(forbiddenTypes);
-        CLIOptionsConfig config = new CLIOptionsConfig(runAll, true, development, forbidden, forbiddenTypeSet, forbiddenCallsMap, primitiveMode);
+        CLIOptionsConfig config = CLIOptionsConfig.fromCLI(this);
 
         try {
             if (file.isDirectory()) {
