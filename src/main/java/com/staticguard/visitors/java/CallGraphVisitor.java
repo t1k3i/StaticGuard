@@ -7,7 +7,12 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.util.*;
 
 public class CallGraphVisitor extends VoidVisitorAdapter<Void> {
-    Map<String, Set<String>> callGraph = new HashMap<>();
+    Map<String, Set<String>> callGraph;
+
+    public CallGraphVisitor(Map<String, Set<String>> callGraph) {
+        this.callGraph = callGraph;
+    }
+
     private String currentMethod = null;
 
     @Override

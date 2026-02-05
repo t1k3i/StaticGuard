@@ -2,8 +2,8 @@
 public class TestNoPrimitive {
 
     public static void main(String[] args) {
-        String text = "Hello, world!";
-        System.out.println(text);
+        String Text = "Hello, world!";
+        System.out.println(Text);
         int Number = 42;
         double pi = 3.14;
         for (int i = 0; i < 10; i++) {

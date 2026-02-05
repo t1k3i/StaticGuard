@@ -1,11 +1,17 @@
 package com.staticguard.handlers;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.staticguard.analyzers.CallGraphAnalyzer;
+import com.staticguard.analyzers.GenericAnalyzer;
 import com.staticguard.analyzers.java.*;
 import com.staticguard.common.ProjectContext;
 import com.staticguard.common.RuleContext;
 import com.staticguard.cli.CLIOptionsConfig;
 import com.staticguard.analyzers.VisitorManager;
+import com.staticguard.common.RuleVisitor;
+import com.staticguard.rules.java.CallGraphRule;
+import com.staticguard.rules.java.LongMethodRule;
+import com.staticguard.rules.java.NamingRule;
 
 import java.io.File;
 
@@ -30,7 +36,7 @@ public class JavaHandler implements LanguageHandler {
            ========================= */
 
         if (runInfo || config.isCallGraph()) {
-            manager.addVisitor(new CallGraphVisitorAnalyzer());
+            manager.addVisitor(new CallGraphAnalyzer<>(new CallGraphRule()));
         }
 
         if (runInfo || config.isClassDependencies()) {
@@ -52,7 +58,8 @@ public class JavaHandler implements LanguageHandler {
            ========================= */
 
         if (runGood || config.isNaming()) {
-            manager.addVisitor(new JavaNamingVisitorAnalyzer(context));
+            RuleVisitor<CompilationUnit> namingRule = new NamingRule();
+            manager.addVisitor(new GenericAnalyzer<CompilationUnit>(context, namingRule));
         }
 
         if (runGood || config.getLongMethodsMaxLines() != null) {
@@ -61,9 +68,9 @@ public class JavaHandler implements LanguageHandler {
                     : 30;
 
             manager.addVisitor(
-                    new LongMethodVisitorAnalyzer(
+                    new GenericAnalyzer<CompilationUnit>(
                             context,
-                            maxLines
+                            new LongMethodRule(maxLines)
                     )
             );
         }

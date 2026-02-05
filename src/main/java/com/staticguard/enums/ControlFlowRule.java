@@ -4,5 +4,6 @@ public enum ControlFlowRule {
     BREAK,
     CONTINUE,
     RETURN,
-    INSTANCEOF
+    INSTANCEOF,
+    GOTO
 }
