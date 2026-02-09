@@ -1,34 +1,33 @@
-package com.staticguard.analyzers.java;
+package com.staticguard.analyzers;
 
-import com.github.javaparser.ast.CompilationUnit;
-import com.staticguard.analyzers.Analyzer;
 import com.staticguard.common.RuleContext;
+import com.staticguard.common.RuleVisitor;
 import com.staticguard.enums.TypeContext;
-import com.staticguard.visitors.java.UsedTypesVisitor;
+import com.staticguard.rules.UsedTypesRule;
 
 import java.util.Map;
 import java.util.Set;
 
-public class UsedTypesVisitorAnalyzer implements Analyzer<CompilationUnit> {
+public class UsedTypesAnalyzer<T> implements Analyzer<T> {
+    private final RuleContext context;
+    private final UsedTypesRule<T> usedTypesRule;
 
-    private final RuleContext arg;
-    private final UsedTypesVisitor usedTypesVisitor = new UsedTypesVisitor();
-
-    public UsedTypesVisitorAnalyzer(RuleContext arg) {
-        this.arg = arg;
+    public UsedTypesAnalyzer(RuleContext context, UsedTypesRule<T> usedTypesRule) {
+        this.context = context;
+        this.usedTypesRule = usedTypesRule;
     }
 
     @Override
-    public void runVisitor(CompilationUnit cu) {
-        cu.accept(usedTypesVisitor, arg);
+    public void runVisitor(T ast) {
+        usedTypesRule.run(ast, context);
     }
 
     @Override
-    public void postVisit(CompilationUnit cu) {
+    public void postVisit() {
         // Print a header
         System.out.println("===== Used Types Report =====");
 
-        Map<String, Set<TypeContext>> usedTypesMap = usedTypesVisitor.getUsedTypes();
+        Map<String, Set<TypeContext>> usedTypesMap = usedTypesRule.getUsedTypes();
 
         if (usedTypesMap.isEmpty()) {
             System.out.println("No types used.");

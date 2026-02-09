@@ -1,26 +1,25 @@
 package com.staticguard.analyzers;
 
-import com.staticguard.common.RuleVisitor;
-import com.staticguard.rules.c.CCallGraphRule;
-import com.staticguard.rules.java.CallGraphRule;
+import com.staticguard.rules.CallGraphRule;
 
 import java.util.Map;
 import java.util.Set;
 
-public class CallGraphAnalyzer<T> extends GenericAnalyzer<T> {
-    public CallGraphAnalyzer(RuleVisitor<T> visitor) {
-        super(null, visitor);
+public class CallGraphAnalyzer<T> implements Analyzer<T> {
+    private final CallGraphRule<T> rule;
+
+    public CallGraphAnalyzer(CallGraphRule<T> rule) {
+        this.rule = rule;
     }
 
     @Override
-    public void postVisit(T ast) {
-        if (visitor instanceof CCallGraphRule rule) {
-            printCallGraph(rule.getCallGraph());
-        }
+    public void runVisitor(T ast) {
+        rule.run(ast, null);
+    }
 
-        if (visitor instanceof CallGraphRule rule) {
-            printCallGraph(rule.getCallGraph());
-        }
+    @Override
+    public void postVisit() {
+        printCallGraph(rule.getCallGraph());
     }
 
     private void printCallGraph(Map<String, Set<String>> graph) {

@@ -11,5 +11,10 @@ public enum TypeContext {
     CAST,
     THROWS,
     EXTENDS,
-    CATCH, IMPLEMENTS
+    CATCH, IMPLEMENTS,
+
+    // Only C
+    TYPEDEF,
+    STRUCT, UNION,
+    ENUM
 }

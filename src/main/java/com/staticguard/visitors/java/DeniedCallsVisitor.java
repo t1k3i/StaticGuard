@@ -8,13 +8,13 @@ import com.staticguard.common.RuleContext;
 import java.util.Map;
 import java.util.Set;
 
-public class AllowedCallsVisitor extends VoidVisitorAdapter<RuleContext> {
+public class DeniedCallsVisitor extends VoidVisitorAdapter<RuleContext> {
 
     private final Map<String, Set<String>> deniedCalls;
 
     private String currentMethod = null;
 
-    public AllowedCallsVisitor(Map<String, Set<String>> deniedCalls) {
+    public DeniedCallsVisitor(Map<String, Set<String>> deniedCalls) {
         this.deniedCalls = deniedCalls;
     }
 

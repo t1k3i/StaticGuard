@@ -6,12 +6,14 @@ import com.github.javaparser.ast.stmt.ForStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 
+import java.sql.SQLIntegrityConstraintViolationException;
+
 public class LoopNestingVisitor extends VoidVisitorAdapter<Void> {
     private int currentDepth = 0;
-    private int maxDepth = 0;
+    private Integer maxDepth;
 
-    public int getMaxDepth() {
-        return maxDepth;
+    public LoopNestingVisitor(Integer maxDepth) {
+        this.maxDepth = maxDepth;
     }
 
     private void enterLoop() {

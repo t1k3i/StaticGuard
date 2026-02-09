@@ -11,16 +11,15 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.staticguard.common.RuleContext;
 import com.staticguard.enums.TypeContext;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 public class UsedTypesVisitor extends VoidVisitorAdapter<RuleContext> {
-    private final Map<String, Set<TypeContext>> usedTypes = new HashMap<>();
+    private final Map<String, Set<TypeContext>> usedTypes;
 
-    public Map<String, Set<TypeContext>> getUsedTypes() {
-        return usedTypes;
+    public UsedTypesVisitor(Map<String, Set<TypeContext>> usedTypes) {
+        this.usedTypes = usedTypes;
     }
 
     private void record(Type type, TypeContext context) {

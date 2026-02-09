@@ -1,17 +1,17 @@
 package com.staticguard.handlers;
 
 import com.github.javaparser.ast.CompilationUnit;
-import com.staticguard.analyzers.CallGraphAnalyzer;
-import com.staticguard.analyzers.GenericAnalyzer;
+import com.staticguard.analyzers.*;
 import com.staticguard.analyzers.java.*;
 import com.staticguard.common.ProjectContext;
 import com.staticguard.common.RuleContext;
 import com.staticguard.cli.CLIOptionsConfig;
-import com.staticguard.analyzers.VisitorManager;
 import com.staticguard.common.RuleVisitor;
-import com.staticguard.rules.java.CallGraphRule;
-import com.staticguard.rules.java.LongMethodRule;
-import com.staticguard.rules.java.NamingRule;
+import com.staticguard.rules.*;
+import com.staticguard.rules.java.ClassDependencyRule;
+import com.staticguard.rules.java.ForbiddenFieldAccessRule;
+import com.staticguard.rules.java.PrimitiveTypeRule;
+import com.staticguard.rules.java.UnusedImportsRule;
 
 import java.io.File;
 
@@ -26,7 +26,6 @@ public class JavaHandler implements LanguageHandler {
         boolean runGood = config.isRunGoodPractices();
 
         if (config.isDevelopment()) {
-            manager.addVisitor(new ClassDependencyVisitorAnalyzer(projectContext.projectClasses));
             manager.runVisitors();
             return;
         }
@@ -36,21 +35,24 @@ public class JavaHandler implements LanguageHandler {
            ========================= */
 
         if (runInfo || config.isCallGraph()) {
-            manager.addVisitor(new CallGraphAnalyzer<>(new CallGraphRule()));
+            manager.addVisitor(new CallGraphAnalyzer<>(new CallGraphRule<>()));
         }
 
         if (runInfo || config.isClassDependencies()) {
+            var classDependencyRule = new ClassDependencyRule<CompilationUnit>(projectContext.projectClasses);
             manager.addVisitor(
-                    new ClassDependencyVisitorAnalyzer(projectContext.projectClasses)
+                    new ClassDependencyAnalyzer<>(context, classDependencyRule)
             );
         }
 
         if (runInfo || config.isUsedTypes()) {
-            manager.addVisitor(new UsedTypesVisitorAnalyzer(context));
+            var usedTypesRule = new UsedTypesRule<CompilationUnit>();
+            manager.addVisitor(new UsedTypesAnalyzer<>(context, usedTypesRule));
         }
 
         if (runInfo || config.isLoopNesting()) {
-            manager.addVisitor(new LoopNestingVisitorAnalyzer());
+            var loopNestingRule = new LoopNestingRule<CompilationUnit>();
+            manager.addVisitor(new LoopNestingAnalyzer<>(context, loopNestingRule));
         }
 
          /* =========================
@@ -58,8 +60,8 @@ public class JavaHandler implements LanguageHandler {
            ========================= */
 
         if (runGood || config.isNaming()) {
-            RuleVisitor<CompilationUnit> namingRule = new NamingRule();
-            manager.addVisitor(new GenericAnalyzer<CompilationUnit>(context, namingRule));
+            RuleVisitor<CompilationUnit> namingRule = new NamingRule<>();
+            manager.addVisitor(new GenericAnalyzer<>(context, namingRule));
         }
 
         if (runGood || config.getLongMethodsMaxLines() != null) {
@@ -68,19 +70,21 @@ public class JavaHandler implements LanguageHandler {
                     : 30;
 
             manager.addVisitor(
-                    new GenericAnalyzer<CompilationUnit>(
+                    new GenericAnalyzer<>(
                             context,
-                            new LongMethodRule(maxLines)
+                            new LongMethodRule<>(maxLines)
                     )
             );
         }
 
         if (runGood || config.isUnusedLocals()) {
-            manager.addVisitor(new UnusedLocalVariablesVisitorAnalyzer(context));
+            var unusedLocalVariableRule = new UnusedLocalVariablesRule<CompilationUnit>();
+            manager.addVisitor(new GenericAnalyzer<>(context, unusedLocalVariableRule));
         }
 
         if (runGood || config.isUnusedImports()) {
-            manager.addVisitor(new UnusedImportsVisitorAnalyzer(context));
+            var unusedImportRule = new UnusedImportsRule<CompilationUnit>();
+            manager.addVisitor(new GenericAnalyzer<>(context, unusedImportRule));
         }
 
         /* =========================
@@ -88,54 +92,56 @@ public class JavaHandler implements LanguageHandler {
            ========================= */
 
         if (!config.getForbiddenMethods().isEmpty()) {
+            var forbiddenMethodRule = new ForbiddenFunctionRule<CompilationUnit>(config.getForbiddenMethods());
             manager.addVisitor(
-                    new ForbiddenMethodVisitorAnalyzer(
+                    new GenericAnalyzer<>(
                             context,
-                            config.getForbiddenMethods()
+                            forbiddenMethodRule
                     )
             );
         }
 
         if (!config.getForbiddenTypes().isEmpty()) {
+            var forbiddenTypesRule = new ForbiddenTypesRule<CompilationUnit>(config.getForbiddenTypes(), null);
             manager.addVisitor(
-                    new ForbiddenTypesVisitorAnalyzer(
-                            context,
-                            config.getForbiddenTypes(),
-                            null
-                    )
+                    new GenericAnalyzer<>(context, forbiddenTypesRule)
             );
         }
 
         if (!config.getForbiddenCalls().isEmpty()) {
+            var deniedCallsRule = new DeniedCallsRule<CompilationUnit>(config.getForbiddenCalls());
             manager.addVisitor(
-                    new AllowedCallsVisitorAnalyzer(
+                    new GenericAnalyzer<>(
                             context,
-                            config.getForbiddenCalls()
+                            deniedCallsRule
                     )
             );
         }
 
         if (config.getPrimitiveMode() != null) {
+            var primitiveTypeRule = new PrimitiveTypeRule<CompilationUnit>(config.getPrimitiveMode());
             manager.addVisitor(
-                    new PrimitiveTypeVisitorAnalyzer(
-                            config.getPrimitiveMode(),
-                            context
+                    new GenericAnalyzer<>(
+                            context,
+                            primitiveTypeRule
                     )
             );
         }
 
         if (!config.getForbiddenControlFlow().isEmpty()) {
+            var forbiddenControlFlowRule = new ForbiddenControlFlowRule<CompilationUnit>(config.getForbiddenControlFlow());
             manager.addVisitor(
-                    new ForbiddenControlFlowVisitorAnalyzer(
-                            config.getForbiddenControlFlow(),
-                            context
+                    new GenericAnalyzer<>(
+                            context,
+                            forbiddenControlFlowRule
                     )
             );
         }
 
         if (config.isForbidFieldAccess()) {
+            var forbiddenFieldAccessRule = new ForbiddenFieldAccessRule<CompilationUnit>();
             manager.addVisitor(
-                    new ForbiddenFieldAccessVisitorAnalyzer(context)
+                    new GenericAnalyzer<>(context, forbiddenFieldAccessRule)
             );
         }
 

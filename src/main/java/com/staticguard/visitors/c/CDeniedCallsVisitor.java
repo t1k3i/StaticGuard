@@ -8,11 +8,11 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.Map;
 import java.util.Set;
 
-public class DeniedCallsVisitor extends CBaseVisitor<Void> {
+public class CDeniedCallsVisitor extends CBaseVisitor<Void> {
     private final RuleContext context;
     private final Map<String, Set<String>> deniedCalls;
 
-    public DeniedCallsVisitor(RuleContext context, Map<String, Set<String>> deniedCalls) {
+    public CDeniedCallsVisitor(RuleContext context, Map<String, Set<String>> deniedCalls) {
         this.context = context;
         this.deniedCalls = deniedCalls;
     }

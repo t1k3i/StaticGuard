@@ -7,10 +7,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class CallGraphVisitor extends CBaseVisitor<Void> {
+public class CCallGraphVisitor extends CBaseVisitor<Void> {
     private final Map<String, Set<String>> callGraph;
 
-    public CallGraphVisitor(Map<String, Set<String>> callGraph) {
+    public CCallGraphVisitor(Map<String, Set<String>> callGraph) {
         this.callGraph = callGraph;
     }
 

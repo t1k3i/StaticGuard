@@ -19,7 +19,7 @@ public class VisitorManager<T> {
     public void runVisitors() {
         for (Analyzer<T> visitor : visitors) {
             visitor.runVisitor(root);
-            visitor.postVisit(root);
+            visitor.postVisit();
         }
     }
 }

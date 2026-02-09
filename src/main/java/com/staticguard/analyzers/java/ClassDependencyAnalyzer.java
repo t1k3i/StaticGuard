@@ -4,29 +4,33 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.analyzers.Analyzer;
 import com.staticguard.common.RuleContext;
 import com.staticguard.enums.TypeContext;
-import com.staticguard.visitors.java.ClassDependencyVisitor;
-import com.staticguard.visitors.java.ProjectClassCollectorVisitor;
+import com.staticguard.rules.java.ClassDependencyRule;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class ClassDependencyVisitorAnalyzer implements Analyzer<CompilationUnit> {
+public class ClassDependencyAnalyzer<T extends CompilationUnit> implements Analyzer<T> {
 
-    private final Set<String> projectClasses;
-    private final Map<String, Map<String, Set<TypeContext>>> dependencies = new HashMap<>();
+    private final RuleContext context;
+    private final ClassDependencyRule<T> rule;
 
-    public ClassDependencyVisitorAnalyzer(final Set<String> projectClasses) {
-        this.projectClasses = projectClasses;
+    public ClassDependencyAnalyzer(
+            RuleContext context,
+            ClassDependencyRule<T> rule
+    ) {
+        this.context = context;
+        this.rule = rule;
     }
 
     @Override
-    public void runVisitor(CompilationUnit cu) {
-        cu.accept(new ClassDependencyVisitor(projectClasses, dependencies), null);
+    public void runVisitor(T ast) {
+        rule.run(ast, context);
     }
 
     @Override
-    public void postVisit(CompilationUnit cu) {
+    public void postVisit() {
+        var dependencies = rule.getDependencies();
+
         System.out.println("=== Project Class Dependencies ===");
 
         for (String clazz : dependencies.keySet()) {

@@ -18,7 +18,7 @@ public class ProjectClassCollectorAnalyzer implements Analyzer<CompilationUnit> 
     }
 
     @Override
-    public void postVisit(CompilationUnit cu) {
-        Analyzer.super.postVisit(cu);
+    public void postVisit() {
+        Analyzer.super.postVisit();
     }
 }
