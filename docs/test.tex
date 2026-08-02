@@ -1,0 +1,822 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% datoteka diploma-FRI-vzorec.tex
+%
+% vzorčna datoteka za pisanje diplomskega dela v formatu LaTeX
+% na UL Fakulteti za računalništvo in informatiko
+%
+% na osnovi starejših verzij vkup spravil Franc Solina, maj 2021
+% prvo verzijo je leta 2010 pripravil Gašper Fijavž
+%
+% za upravljanje z literaturo ta vezija uporablja BibLaTeX
+%
+% svetujemo uporabo Overleaf.com - na tej spletni implementaciji LaTeXa ta vzorec zagotovo pravilno deluje
+%
+
+\documentclass[a4paper,12pt,openright]{book}
+%\documentclass[a4paper, 12pt, openright, draft]{book}  Nalogo preverite tudi z opcijo draft, ki pokaže, katere vrstice so predolge! Pozor, v draft opciji, se slike ne pokažejo!
+ 
+\usepackage[utf8]{inputenc}   % omogoča uporabo slovenskih črk kodiranih v formatu UTF-8
+\usepackage[slovene,english]{babel}    % naloži, med drugim, slovenske delilne vzorce
+\usepackage[pdftex]{graphicx}  % omogoča vlaganje slik različnih formatov
+\usepackage{fancyhdr}          % poskrbi, na primer, za glave strani
+\usepackage{amssymb}           % dodatni matematični simboli
+\usepackage{amsmath}           % eqref, npr.
+\usepackage[hyphens]{url}
+\usepackage{csquotes}
+\usepackage[pdftex, colorlinks=true,
+						citecolor=black, filecolor=black, 
+						linkcolor=black, urlcolor=black,
+						pdfproducer={LaTeX}, pdfcreator={LaTeX}]{hyperref}
+\usepackage{hyperxmp}
+
+
+\usepackage{color}
+\usepackage{soul}
+
+\usepackage[
+backend=biber,
+style=numeric,
+sorting=nty,
+]{biblatex}
+
+
+\addbibresource{literatura.bib} %Imports bibliography file
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	DIPLOMA INFO
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\ttitle}{Sistem za statično analizo programske kode}
+\newcommand{\ttitleEn}{Static code analysis system}
+\newcommand{\tsubject}{\ttitle}
+\newcommand{\tsubjectEn}{\ttitleEn}
+\newcommand{\tauthor}{Tikei Radovac}
+\newcommand{\tkeywords}{statična analiza, Java, abstraktno sintaksno drevo, C, programska koda, CLI, analiza kode}
+\newcommand{\tkeywordsEn}{static analysis, Java, abstract syntax tree, C, code, CLI, code analysis}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	HYPERREF SETUP
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\hypersetup{pdftitle={\ttitle}}
+\hypersetup{pdfsubject=\ttitleEn}
+\hypersetup{pdfauthor={\tauthor}}
+\hypersetup{pdfkeywords=\tkeywordsEn}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% postavitev strani
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
+\addtolength{\marginparwidth}{-20pt} % robovi za tisk
+\addtolength{\oddsidemargin}{40pt}
+\addtolength{\evensidemargin}{-40pt}
+
+\renewcommand{\baselinestretch}{1.3} % ustrezen razmik med vrsticami
+\setlength{\headheight}{15pt}        % potreben prostor na vrhu
+\renewcommand{\chaptermark}[1]%
+{\markboth{\MakeUppercase{\thechapter.\ #1}}{}} \renewcommand{\sectionmark}[1]%
+{\markright{\MakeUppercase{\thesection.\ #1}}} \renewcommand{\headrulewidth}{0.5pt} \renewcommand{\footrulewidth}{0pt}
+\fancyhf{}
+\fancyhead[LE,RO]{\sl \thepage} 
+%\fancyhead[LO]{\sl \rightmark} \fancyhead[RE]{\sl \leftmark}
+\fancyhead[RE]{\sc \tauthor}              % dodal Solina
+\fancyhead[LO]{\sc Diplomska naloga}     % dodal Solina
+
+
+\newcommand{\BibLaTeX}{{\sc Bib}\LaTeX}
+\newcommand{\BibTeX}{{\sc Bib}\TeX}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% naslovi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
+\newcommand{\autfont}{\Large}
+\newcommand{\titfont}{\LARGE\bf}
+\newcommand{\clearemptydoublepage}{\newpage{\pagestyle{empty}\cleardoublepage}}
+\setcounter{tocdepth}{1}	      % globina kazala
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% konstrukti
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+\newtheorem{izrek}{Izrek}[chapter]
+\newtheorem{trditev}{Trditev}[izrek]
+\newenvironment{dokaz}{\emph{Dokaz.}\ }{\hspace{\fill}{$\Box$}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PDF-A
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% define medatata
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\def\Title{\ttitle}
+\def\Author{\tauthor, tr83091@student.uni-lj.si}
+\def\Subject{\ttitleEn}
+\def\Keywords{\tkeywordsEn}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+% \convertDate converts D:20080419103507+02'00' to 2008-04-19T10:35:07+02:00
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\def\convertDate{%
+    \getYear
+}
+
+{\catcode`\D=12
+ \gdef\getYear D:#1#2#3#4{\edef\xYear{#1#2#3#4}\getMonth}
+}
+\def\getMonth#1#2{\edef\xMonth{#1#2}\getDay}
+\def\getDay#1#2{\edef\xDay{#1#2}\getHour}
+\def\getHour#1#2{\edef\xHour{#1#2}\getMin}
+\def\getMin#1#2{\edef\xMin{#1#2}\getSec}
+\def\getSec#1#2{\edef\xSec{#1#2}\getTZh}
+\def\getTZh +#1#2{\edef\xTZh{#1#2}\getTZm}
+\def\getTZm '#1#2'{%
+    \edef\xTZm{#1#2}%
+    \edef\convDate{\xYear-\xMonth-\xDay T\xHour:\xMin:\xSec+\xTZh:\xTZm}%
+}
+
+%\expandafter\convertDate\pdfcreationdate 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% get pdftex version string
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\newcount\countA
+\countA=\pdftexversion
+\advance \countA by -100
+\def\pdftexVersionStr{pdfTeX-1.\the\countA.\pdftexrevision}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% XMP data
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+\usepackage{xmpincl}
+%\includexmp{pdfa-1b}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% pdfInfo
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+\pdfinfo{%
+    /Title    (\ttitle)
+    /Author   (\tauthor, tr83091@student.uni-lj.si)
+    /Subject  (\ttitleEn)
+    /Keywords (\tkeywordsEn)
+    /ModDate  (\pdfcreationdate)
+    /Trapped  /False
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% znaki za copyright stran
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
+
+\newcommand{\CcImageCc}[1]{%
+	\includegraphics[scale=#1]{cc_cc_30.pdf}%
+}
+\newcommand{\CcImageBy}[1]{%
+	\includegraphics[scale=#1]{cc_by_30.pdf}%
+}
+\newcommand{\CcImageSa}[1]{%
+	\includegraphics[scale=#1]{cc_sa_30.pdf}%
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\selectlanguage{slovene}
+\frontmatter
+\setcounter{page}{1} %
+\renewcommand{\thepage}{}       % preprečimo težave s številkami strani v kazalu
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%naslovnica
+ \thispagestyle{empty}%
+   \begin{center}
+    {\large\sc Univerza v Ljubljani\\%
+%      Fakulteta za elektrotehniko\\% za študijski program Multimedija
+%      Fakulteta za upravo\\% za študijski program Upravna informatika
+      Fakulteta za računalništvo in informatiko\\%
+%      Fakulteta za matematiko in fiziko\\% za študijski program Računalništvo in matematika
+     }
+    \vskip 10em%
+    {\autfont \tauthor\par}%
+    {\titfont \ttitle \par}%
+    {\vskip 3em \textsc{DIPLOMSKO DELO\\[5mm]         % dodal Solina za ostale študijske programe
+%    VISOKOŠOLSKI STROKOVNI ŠTUDIJSKI PROGRAM\\ PRVE STOPNJE\\ RAČUNALNIŠTVO IN INFORMATIKA}\par}%
+     UNIVERZITETNI  ŠTUDIJSKI PROGRAM\\ PRVE STOPNJE\\ RAČUNALNIŠTVO IN INFORMATIKA}\par}%
+%    INTERDISCIPLINARNI UNIVERZITETNI\\ ŠTUDIJSKI PROGRAM PRVE STOPNJE\\ MULTIMEDIJA}\par}%
+%    INTERDISCIPLINARNI UNIVERZITETNI\\ ŠTUDIJSKI PROGRAM PRVE STOPNJE\\ UPRAVNA INFORMATIKA}\par}%
+%    INTERDISCIPLINARNI UNIVERZITETNI\\ ŠTUDIJSKI PROGRAM PRVE STOPNJE\\ RAČUNALNIŠTVO IN MATEMATIKA}\par}%
+    \vfill\null%
+% izberite pravi habilitacijski naziv mentorja!
+    {\large \textsc{Mentor}: doc. dr. Luka Fürst\par}%
+    {\vskip 2em \large Ljubljana, \the\year \par}%
+\end{center}
+% prazna stran
+%\clearemptydoublepage      
+% izjava o licencah itd. se izpiše na hrbtni strani naslovnice
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%copyright stran
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
+\thispagestyle{empty}
+
+\vspace*{5cm}
+{\small \noindent
+To delo je ponujeno pod licenco \textit{Creative Commons Priznanje avtorstva-Deljenje pod enakimi pogoji 2.5 Slovenija} (ali novej\v so razli\v cico).
+To pomeni, da se tako besedilo, slike, grafi in druge sestavine dela kot tudi rezultati diplomskega dela lahko prosto distribuirajo,
+reproducirajo, uporabljajo, priobčujejo javnosti in predelujejo, pod pogojem, da se jasno in vidno navede avtorja in naslov tega
+dela in da se v primeru spremembe, preoblikovanja ali uporabe tega dela v svojem delu, lahko distribuira predelava le pod
+licenco, ki je enaka tej.
+Podrobnosti licence so dostopne na spletni strani \href{http://creativecommons.si}{creativecommons.si} ali na Inštitutu za
+intelektualno lastnino, Streliška 1, 1000 Ljubljana.
+
+\vspace*{1cm}
+\begin{center}% 0.66 / 0.89 = 0.741573033707865
+\CcImageCc{0.741573033707865}\hspace*{1ex}\CcImageBy{1}\hspace*{1ex}\CcImageSa{1}%
+\end{center}
+}
+
+\vspace*{1cm}
+{\small \noindent
+Izvorna koda diplomskega dela, njeni rezultati in v ta namen razvita programska oprema je ponujena pod licenco GNU General Public License,
+različica 3 (ali novejša). To pomeni, da se lahko prosto distribuira in/ali predeluje pod njenimi pogoji.
+Podrobnosti licence so dostopne na spletni strani \url{http://www.gnu.org/licenses/}.
+}
+
+\vfill
+\begin{center} 
+\ \\ \vfill
+{\em
+Besedilo je oblikovano z urejevalnikom besedil \LaTeX.}
+\end{center}
+
+% prazna stran
+\clearemptydoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% stran 3 med uvodnimi listi
+\thispagestyle{empty}
+\
+\vfill
+
+\bigskip
+\noindent\textbf{Kandidat:} Tikei Radovac\\
+\noindent\textbf{Naslov:} Sistem za statično analizo programske kode\\
+% vstavite ustrezen naziv študijskega programa!
+\noindent\textbf{Vrsta naloge:} Diplomska naloga na univerzitetnem programu prve stopnje Računalništvo in informatika \\
+% izberite pravi habilitacijski naziv mentorja!
+\noindent\textbf{Mentor:} doc. dr. Luka Fürst\\
+
+\bigskip
+\noindent\textbf{Opis:}\\
+Besedilo teme diplomskega dela študent prepiše iz študijskega informacijskega sistema, kamor ga je vnesel mentor. 
+V nekaj stavkih bo opisal, kaj pričakuje od kandidatovega diplomskega dela. 
+Kaj so cilji, kakšne metode naj uporabi, morda bo zapisal tudi ključno literaturo. (Ni še vneseno)
+
+\bigskip
+\noindent\textbf{Title:} Static code analysis system
+
+\bigskip
+\noindent\textbf{Description:}\\
+opis diplome v angleščini
+
+\vfill
+
+
+
+\vspace{2cm}
+
+% prazna stran
+\clearemptydoublepage
+
+% zahvala
+\thispagestyle{empty}\mbox{}\vfill\null\it%
+\noindent
+
+Iskreno se zahvaljujem svojemu mentorju, doc. dr. Luku Fürstu, ki mi je predlagal temo diplomske naloge ter mi ves čas veliko pomagal in me usmerjal skozi celoten proces njenega nastajanja. Zahvala gre tudi vsem ostalim profesorjem in asistentom, ki so mi skozi študij predali dragoceno znanje in izkušnje. Hvaležen sem tudi vsem sošolcem, s katerimi sem preživel številne neprespane noči – njihova pomoč in podpora so bile neprecenljive.
+
+Na koncu se iskreno zahvaljujem tudi svoji družini, ki mi je ves čas stala ob strani in me spodbujala na poti skozi študij.
+
+\rm\normalfont
+
+% prazna stran
+\clearemptydoublepage
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% kazalo
+\pagestyle{empty}
+\def\thepage{}% preprečimo težave s številkami strani v kazalu
+\tableofcontents{}
+
+
+% prazna stran
+\clearemptydoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% seznam kratic
+
+\chapter*{Seznam uporabljenih kratic}
+
+\noindent\begin{tabular}{p{0.11\textwidth}|p{.39\textwidth}|p{.39\textwidth}}    % po potrebi razširi prvo kolono tabele na račun drugih dveh!
+  {\bf kratica} & {\bf angleško}                              & {\bf slovensko} \\ \hline
+  {\bf AST}      & abstract syntax tree               & abstraktno sintaktično drevo \\
+  {\bf UI}      & user interface                              & uporabniški vmesnik \\
+  {\bf CLI}     & command line interface                      & ukaznovrstični vmesnik \\
+%  \dots & \dots & \dots \\
+\end{tabular}
+
+
+% prazna stran
+\clearemptydoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% povzetek
+\phantomsection
+\addcontentsline{toc}{chapter}{Povzetek}
+\chapter*{Povzetek}
+
+\noindent\textbf{Naslov:} \ttitle
+\bigskip
+
+\noindent\textbf{Avtor:} \tauthor
+\bigskip
+
+%\noindent\textbf{Povzetek:} 
+\noindent Skozi diplomsko nalogo bom razvil sistem za statično analizo programske kode. Osredotočil se bom na programska jezika Java in C. Sistem bo uporabniku omogočal analiziranje programa preko ukaznovrstnega (CLI) uporabniškega vmesnika. Omogočeno bo iskanje določenih elementov v kodi, prikaz uporabljenih konstrukcij ter statistika o njihovi uporabi, kot so število pojavitev posameznih elementov, prikaz uporabljenih funkcij in tipov, prikaz največje globine gnezdenja ipd. Vse te informacije bodo prikazane uporabniku v ukazni vrstici.
+
+Za razvijanje takšnega orodja mi je predlagal mentor, saj bi ga uporabljal pri predmetih Programiranje 1 in Programiranje 2, ki ju poučuje. Študentje pri tem predmetu pogosto dobijo dodatne omejitve glede uporabe določenih elementov v kodi (npr. prepoved uporabe primitivnih tipov). Z razvitim sistemom bi mentor lahko učinkoviteje preverjal upoštevanje teh omejitev, študentom pa bi orodje omogočilo samostojen pregled in analizo njihove kode.
+
+\bigskip
+
+\noindent\textbf{Ključne besede:} \tkeywords.
+% prazna stran
+\clearemptydoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% abstract
+\phantomsection
+\selectlanguage{english}
+\addcontentsline{toc}{chapter}{Abstract}
+\chapter*{Abstract}
+
+\noindent\textbf{Title:} \ttitleEn
+\bigskip
+
+\noindent\textbf{Author:} \tauthor
+\bigskip
+
+%\noindent\textbf{Abstract:} 
+\noindent As part of this thesis, I will develop a system for static analysis of source code, focusing specifically on the Java and C programming languages. The system will allow users to analyze their code through a command-line interface (CLI). It will support searching for specific code elements, displaying used language constructs, and providing statistics on their usage — such as the number of occurrences of certain elements, the use of functions and data types, the maximum nesting depth, and more. All this information will be presented in the command-line output.
+
+The idea for such a tool was proposed by my mentor, who intends to use it in the Programming 1 and Programming 2 courses he teaches. In this course, students are often required to adhere to specific coding constraints (e.g., prohibition of primitive types). With the developed system, the mentor would be able to more effectively check compliance with these restrictions, while students could use the tool for independent review and analysis of their code.
+\bigskip
+
+\noindent\textbf{Keywords:} \tkeywordsEn.
+\selectlanguage{slovene}
+% prazna stran
+\clearemptydoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\mainmatter
+\setcounter{page}{1}
+\pagestyle{fancy}
+
+\chapter{Uvod}
+
+Med iskanjem teme za diplomsko nalogo mi je Luka Fürst omenil, da bi potreboval program za statično analizo programske kode, saj bi mu bil koristen pri predmetih, ki jih poučuje – predvsem Programiranje 1 in Programiranje 2. Statična analiza je postopek preverjanja in analize programske kode, ki se zgodi, brez da program zaženemo \cite{techtarget_static}. 
+
+Pri Programiranju 1 in 2 študentje pogosto dobijo dodatne omejitve glede tega, kaj lahko vključijo v svojo kodo (prepoved uporabe primitivnih tipov, prepoved uporabe nekaterih funkcij ipd.), zato bi bil takšen ukaznovrstični program (CLI) zelo uporaben za preverjanje programov. Profesorji s tem programom ne bi le prepovedovali določenih konstruktov, temveč bi lahko tudi spremljali dobre prakse ter pridobili vpogled v način, kako študentje pišejo programe in katere gradnike uporabljajo (npr. tipe in funkcije). Takšno orodje bi se uporabljalo predvsem v učnem okolju – za pomoč profesorjem pri pregledovanju nalog, pa tudi študentom, saj bi jim omogočilo hitro preverjanje skladnosti z omejitvami in boljše razumevanje zahtev naloge.
+
+Največkrat se programe testira s testnimi primeri (kar se dogaja tudi pri omenjenih predmetih) oziroma s testi, ki zahtevajo dejanski zagon kode in preverjanje njenih izhodov. S statično analizo pa lahko dodamo dodatno preverbo še pred izvajanjem programa, kar omogoča zgodnje odkrivanje napak in nadzor nad skladnostjo kode z omejitvami ter vpogled v dejansko programsko kodo, brez da profesor ročno odpira vse programe.
+
+Cilj diplomske naloge je razviti ukaznovrstični program (CLI program) za statično analizo programske kode v Javi in v C-ju. Program bo uporabnikom omogočal iskanje določenih elementov v kodi, prikaz uporabljenih konstrukcij ter različne podatke o njihovi uporabi, kot je število pojavitev posameznih elementov, prikaz funkcij in tipov, ki se uporabljajo (in njihov kontekst uporabe), prikaz največje globina zančenja itd.  Rezultati analize bodo prikazani neposredno v ukazni vrstici.
+
+Ideja ni, da se napiše sintaksni analizator za Javo in C vendar, da se osredotočamo na samo analizo že narejenega AST-ja. Za grajenje AST-ja bom uporabil kakšno orodje.
+
+V diplomski nalogi je najprej opis področja statične analize, obstoječa orodja in rešitve, predvsem za programska jezika Java in C. Sledilo bo načrtovanje aplikacije z vsemi zahtevanimi elementi, implementacija ter testiranje na realnih primerih, vključno s programi študentov pri predmetih Programiranje 1 in Programiranje 2. Celoten razvojni postopek bo dokumentiran, na koncu pa bodo predstavljeni in analizirani dobljeni rezultati in ugotovitve.
+
+\chapter{Pregled sorodnih rešitev in literature}
+\label{ch0}
+
+Področje statične analize je v znanstveni literaturi dobro pokrito. Obstaja veliko člankov, študij in orodij, ki so namenjeni analizi kakovosti in varnosti programske opreme. Gre za pomemben koncept v programskem razvoju, ki je prisoten v skoraj vsakem razvojnem procesu. Na Fakulteti za računalništvo in informatiko pa je diplomskih in magistrskih del, ki bi se neposredno navezovala oziroma bila podobna naši temi, razmeroma malo.
+
+To orodje bo namenjeno uporabi v učnih okoljih, zato bo v tem poglavju poudarek na člankih in literaturi, ki obravnavajo statično analizo v izobraževalnem kontekstu. Opisana bodo tudi nekatera obstoječa orodja za statično analizo, namenjena programskima jezikoma Java in C.
+
+\section{Zakaj je statična analiza koristna}
+
+Statična analiza programske kode je analiza kode brez poganjanja programa. Uporablja pa prevajanje ali dele prevajalnika (npr. AST\footnote{Abstract Syntax Tree}, semantično analizo), torej analizo abstraktnega sintaksnega drevesa ter drugih predstavitev kode (npr. podatkovnega in nadzornega toka). Statična analiza je ključna v modernem razvoju programske opreme. Uporablja se za veliko različnih namenov in je v veliki večini primerov integrirana v sam proces razvoja programske opreme, najpogosteje kot del CI/CD\footnote{Continuous Integration / Continuous Deployment} procesa (avtomatiziranega procesa gradnje, testiranja in dostave programske opreme) \cite{codescene_static_analysis}.
+
+V razvoju se pogosto uporabljajo tudi ročni pregledi kode, vendar je statična analiza pogosto učinkovitejša pri odkrivanju določenih vrst napak, medtem ko ročni pregledi bolje zaznajo kompleksne logične težave.
+
+Ta metoda ni stoodstotno zanesljiva, saj ne more zaznati vseh napak, poleg tega pa lahko včasih opozori tudi na del kode, ki je bil napisan namerno tako, vendar ga pravila vseeno označijo kot problematičnega (false positives) oziroma problema ne najde (false negative). Kljub temu pa nam lahko bistveno pomaga pri izboljšanju zanesljivosti kode ter pri odkrivanju delov, ki bi lahko predstavljali varnostna tveganja ali povzročali ranljivosti. Najpogosteje se statična analiza uporablja za preverjanje programerskih smernic in industrijskih standardov.
+
+Z njeno pomočjo lahko hitreje zaznamo napake, kot so ničelni kazalci ter različne varnostne ranljivosti, na primer injekcijski napadi (npr. SQL injekcije). Poleg tega izboljšuje kakovost kode, saj zahteva upoštevanje enotnih standardov, kar poveča berljivost ter olajša vzdrževanje in pregled kode v prihodnosti. Primeri takšnih izboljšav so odkrivanje neiniciliziranih spremenljivk in neuporabljene kode. Posledično se zmanjšajo tudi stroški razvoja. Statična analiza pomembno prispeva tudi k zagotavljanju varnosti in skladnosti z zahtevami posameznih industrij (npr. zdravstvena industrija ima stroge predpise).
+
+SLika pipline 
+
+\section{Orodja za statično analizo kode}
+
+Članek \textcite{truong2004static} raziskuje uporabo statične analize za preverjanje programov začetnikov v Javi. Glavni poudarek je na iskanju napak in analiziranju pogostosti različnih konstrukcij v kodi, kar je lahko zelo koristno za vadbo začetnikov pri pisanju boljših programov ter kot pomoč učiteljskemu kadru pri ocenjevanju. Podobno tematiko bom obravnaval tudi v svoji diplomski nalogi, pri čemer se bom prav tako osredotočil na programski jezik Java. V članku so uporabili orodje za statično analizo, da so iz več programov izluščili najpogostejše tipe napak in slabe prakse.
+
+Teorijo statične analize natančneje predstavi članek \textcite{moller2012static}, kjer avtorja predstavita različne tehnike statične analize, kot so abstraktna interpretacija, kontrolni tok in analize tipov. Gre za pomembno delo, ki podaja širši pogled na principe orodij za statično analizo.
+
+Za programski jezik Java obstaja več uveljavljenih orodij za statično analizo kode, ki se razlikujejo glede na namen in pristop analize. Med najbolj znanimi so FindBugs (oziroma njegova nadgradnja SpotBugs), PMD, Checkstyle in SonarQube. FindBugs analizira bajtkodo in je usmerjen predvsem v odkrivanje napak ter potencialnih ranljivosti \cite{ayewah2008using}. PMD se osredotoča na zaznavanje slabih programerskih praks, kot so neuporabljene spremenljivke ali neučinkovite konstrukcije, medtem ko Checkstyle preverja skladnost kode s slogovnimi smernicami. SonarQube predstavlja celovito platformo za spremljanje kakovosti kode, ki poleg statične analize omogoča tudi vizualizacijo metrik, zaznavanje varnostnih ranljivosti ter integracijo v CI/CD procese. Ta orodja se pogosto uporabljajo tudi v izobraževalnem okolju, saj omogočajo avtomatsko preverjanje kode ter študentom pomagajo pri razumevanju napak in izboljšanju programerskih navad.
+
+Za programska jezika C in C++ je na voljo nekoliko manj enostavnih orodij za statično analizo, vendar obstajajo zmogljive rešitve, kot so Cppcheck, Clang Static Analyzer in Phasar. Cppcheck je usmerjen predvsem v odkrivanje napak in varnostnih ranljivosti v kodi, medtem ko Clang Static Analyzer omogoča napredno analizo na osnovi LLVM infrastrukture. Phasar predstavlja ogrodje za razvoj medproceduralnih statičnih analiz, ki omogočajo poglobljeno analizo podatkovnih in kontrolnih tokov ter odvisnosti med funkcijami \cite{schubert2019phasar}. Takšna orodja so praviloma bolj kompleksna, vendar omogočajo zelo natančno analizo, kar je pomembno predvsem pri razvoju sistemske programske opreme.
+
+\section{Sorodna diplomska in magistrska dela}
+
+Na področju statične analize programske kode v okviru diplomskih in magistrskih nalog ni veliko del, ki bi se neposredno ujemala z obravnavano temo. Kljub temu obstaja nekaj raziskav, ki se delno navezujejo na to področje.
+
+Škabar (2016) je obravnaval metrike kompleksnosti programske kode ter primerjal različna orodja za njeno analizo \cite{ŠKABAR_2016}. Preininger (2023) je razširil orodje za statično analizo pametnih pogodb \cite{PREININGER_2023}. Milosheska (2016) pa je raziskovala uporabo statične analize kode v agilnih razvojnih okoljih, s poudarkom na varnostnem testiranju \cite{MILOSHESKA_2016}.
+
+Čeprav se navedena dela razlikujejo po ciljih in kontekstu uporabe, vsa potrjujejo pomembno vlogo statične analize pri izboljšanju kakovosti in varnosti programske kode.
+
+
+\chapter{Načrtovanje rešitve}
+\label{ch1}
+
+\section{Uporabljene metodologije}
+
+Pri izdelavi diplomske naloge bom uporabljal iterativni pristop, kjer bo razvoj potekal po korakih oziroma fazah. Po vsakem večjem mejnem koraku se bom sestal z mentorjem, ki bo pregledal vmesne rezultate in mi povedal kako naj nadaljujem. Na ta način bom sproti odpravljal morebitne pomanjkljivosti in sproti nadgrajeval rešitev glede na povratne informacije. Tak pristop mi bo omogočil bolj kakovostno in usmerjeno razvijanje končnega sistema.
+
+Pri izdelavi svoje diplomske naloge bom uporabljal že obstoječa orodja za izdelavo abstraktno sintaksnih dreves. Za programski jezik Java bom uporabil JavaParser \cite{javaparser}, za analizo programske kode v jeziku C pa bom uporabil ANTLR \cite{antlr}. Za C bom uporabil že obstoječo, preizkušeno gramatiko, kar mi bo omogočilo zanesljivo in učinkovito parsanje kode. Samo orodje bom razvijal v programskem jeziku Java, z uporabo okolja IntelliJ IDEA in sistema za upravljanje projektov Maven. Poleg tega bom pri razvoju uporabljal Git in platformo GitHub.
+
+Testne primere, na katerih bom preizkušal delovanje rešitve, mi bo zagotovil mentor. Testiral bom na starih študentskih programih pri predmetih Programiranje 1 in Programiranje 2.
+
+\section{Zahteve sistema}
+
+Sistem mora omogočati statično analizo programske kode v programskih jezikih Java in C, pri čemer bo izhodišče za analizo abstraktno sintaksno drevo, ki ga bo sistem ustavril s pomočjo zunanjih orodij. Sistem bo kot vhod prejel programsko kodo v enem od omenjenih dveh programskih jezikov. Podpirati mora tako vnos posamezne datoteke kot tudi vnos map oziroma celotnih projektov. Glavne funkcionalnosti vključujejo iskanje in identifikacijo določenih elementov v kodi, na primer uporabljenih funkcij, tipov in kontrolnih struktur, ter statistični prikaz njihove uporabe, kot so število pojavitev, največja globina gnezdenja in morebitni graf klicev funkcij. Velik del programa poleg identifikacije je tudi zaznavanje prepovedanih uporabljenih konstruktov jezika v določenih kontekstih. Poleg tega bo program omogočal zaznavanje neupoštevanja dobrih praks, s čimer bo študente spodbujal k njihovemu doslednemu upoštevanju in učinkovitejšemu učenju. Vse interakcije med sistemom in uporabnikom morajo biti omogočene preko CLI-ja. Izhod mora biti viden v ukazni vrstici.
+
+Sistem mora biti enostaven za uporabo v učnem okolju, saj bo služil tako profesorjem pri preverjanju skladnosti študentskih nalog z določenimi omejitvami kot tudi študentom za samostojno preverjanje in izboljševanje njihove kode. Zato mora vključevati jasno dokumentacijo ter pomoč pri uporabi, na primer opis ukazov in možnosti v ukazni vrstici (CLI).
+
+\section{Različni pristopi}
+
+Za statično analizo programov obstaja več različnih pristopov. Prevajalniki sicer že izvajajo osnovne analize, kot so leksikalna, sintaksna in semantična analiza, vendar te služijo predvsem za namen prevajanja in preverjanja pravilnosti programske kode. V tej diplomski nalogi se ne bomo osredotočali na odkrivanje sintaktičnih ali semantičnih napak, temveč predpostavljamo, da analiziramo programe, ki se uspešno prevedejo. Statična analiza se v tem kontekstu uporablja za dodatno analizo že pravilne kode. Med najbolj znane pristope sodijo analiza abstraktnega sintaktičnega drevesa (AST – abstract syntax tree), analiza nadzornega toka (CFG – control flow graph) in analiza podatkovnega toka. Ti pristopi predstavljajo osnovo številnih statičnih analizatorjev. Velikokrat se različni pristopi uporabljajo tudi skupaj.
+
+Poleg teh obstajajo tudi bolj specifične analize, ki so usmerjene v odkrivanje določenih vrst težav. Primer takšne analize je analiza kazalcev (pointer analysis), ki ugotavlja, na katere pomnilniške lokacije lahko kažejo posamezni kazalci in se pogosto uporablja pri optimizaciji in preverjanju pravilnosti programov.
+
+\subsection{Analiza nadzornega toka (CFG)}
+
+Analiza nadzornega toka je predstavitev vseh poti, ki jih funkcija lahko prečka med svojim izvajanjem, z uporabo grafovske notacije. V tem grafu so bloki predstavljeni kot vozlišča, povezave pa kot možni prehodi med njimi. Vsak blok ima vhodni blok in lahko več izhodnih povezav, pri čemer posamezen blok vsebuje enega ali več ukazov.
+
+S to analizo je mogoče predstaviti vse možne poti izvajanja brez dejanskega izvajanja programa. Uporablja se pri analizi dosegljivosti kode, odkrivanju mrtve oziroma nedosegljive kode ter pri modeliranju vseh možnih poti izvajanja. Pogosto se uporablja v prevajalnikih za optimizacije ter pri odkrivanju napak in varnostnih ranljivosti. Velikokrat služi kot osnova za druge analize.
+
+\url{https://en.wikipedia.org/wiki/Control-flow_graph}
+
+\subsection{Analiza podatkovnega toka}
+
+Analiza podatkovnega toka, znana tudi kot DFA (data flow analysis), je tehnika, ki omogoča spremljanje možnih vrednosti, ki jih lahko spremenljivke pridobijo na različnih točkah v programu. Osnova za to analizo je kontrolni tok (CFG) programa, ki se uporablja za preučevanje vseh poti, po katerih lahko spremenljivka potuje.
+
+Ta vrsta analize se pogosto uporablja v prevajalnikih za optimizacijo kode, pa tudi za druge namene, kot so preverjanje skladnosti s programerskimi smernicami. Enostaven način za izvajanje analize podatkovnega toka je postavitev enačb za vsak vozlišče v kontrolnem toku in reševanje teh enačb z večkratnim izračunavanjem izhodov na podlagi vhodov lokalno pri vsakem vozlišču, dokler celoten sistem ne stabilizira, tj. doseže fiksno točko.
+
+\url{https://en.wikipedia.org/wiki/Data-flow_analysis}
+
+\subsection{Analiza abstraktnega sintaktičnega drevesa (AST)}
+
+Abstraktno sintaktično drevo (AST) je podatkovna struktura, ki predstavlja strukturo programske kode v obliki drevesa, kjer posamezna vozlišča ustrezajo konstrukcijam programskega jezika. Izraz abstraktno pomeni, da drevo ne vsebuje vseh podrobnosti konkretne sintakse (npr. oklepajev ali ločil), temveč zgolj bistvene elemente, potrebne za razumevanje strukture programa.
+
+AST je sestavni del skoraj vsakega prevajalnika in predstavlja ključno osnovo za nadaljnje faze obdelave kode. Analiza drevesne strukture je namreč bistveno enostavnejša in preglednejša kot neposredno delo s tekstovno predstavitvijo programa. Poleg tega AST omogoča, da posameznim vozliščem pripišemo dodatne atribute (npr. tipe, vrednosti ali druge metapodatke), kar olajša nadaljnjo analizo brez spreminjanja izvorne kode.
+
+Pogosto AST služi tudi kot osnova za različne statične analize kode. V primeru obravnavanega programa pa zadostuje že sama analiza AST, saj cilj ni optimizacija kode ali odkrivanje napak, temveč pridobivanje strukturnih informacij. Analiza se osredotoča na štetje pojavitev posameznih elementov, identifikacijo uporabljenih konstrukcij ter izračun statističnih metrik (npr. število funkcij, tipov ali globina gnezdenja).
+
+Ker takšen pristop ne zahteva analize različnih poti izvajanja programa ali sledenja vrednostim spremenljivk, uporaba kompleksnejših tehnik, kot sta graf kontrolnega toka (CFG) ali analiza toka podatkov (DFA), ni potrebna. AST v tem primeru omogoča dovolj enostavno in učinkovito traversiranje drevesa ter ekstrakcijo vseh relevantnih informacij.
+
+\url{https://en.wikipedia.org/wiki/Abstract_syntax_tree}
+
+\section{Arhitektura rešitve}
+
+Sistem je zasnovan kot orodje, ki preko ukazne vrstice (CLI) sprejme vhodno programsko kodo v programskem jeziku Java ali C, bodisi v obliki posamezne datoteke ali celotne mape. Na podlagi podanih argumentov uporabnik določi, katere analize želi izvesti (npr. izračun največje globine gnezdenja ali izpis uporabljenih tipov).
+
+Ne glede na izbrani programski jezik sistem ponuja enoten nabor možnosti (zastavic), pri čemer vse funkcionalnosti niso nujno smiselne za oba jezika. Zaradi razlik med jezikoma (npr. odsotnost razredov v jeziku C) se določene analize v posameznih primerih ne izvedejo. Sistem takšne zastavice zazna in jih ustrezno ignorira ali uporabnika o tem obvesti.
+
+Po prejemu vhodnih podatkov se programska koda s pomočjo zunanjih orodij (JavaParser za Javo in ANTLR za C) pretvori v abstraktno sintaksno drevo (AST), ki predstavlja osnovo za nadaljnjo analizo. Nad to drevesno strukturo se nato izvajajo posamezne analize, ki se sprožijo glede na uporabniško izbrane možnosti.
+
+Analiza poteka s prehajanjem (traversiranjem) abstraktnega sintaksnega drevesa z uporabo načrtovalskega vzorca Visitor, ki omogoča ločitev logike analize od same strukture drevesa. Za vsak podprt programski jezik je potrebno implementirati ustrezne obiskovalce (visitorje), saj se struktura AST med jezikoma razlikuje. Kljub temu je zasnova sistema takšna, da je izhodni del in upravljanje analiz skupno za oba jezika, kar omogoča ponovno uporabo kode in enotno uporabniško izkušnjo.
+
+Rezultati analiz se na koncu izpišejo v ukazni vrstici v strukturirani in pregledni obliki.
+
+\subsection{Visitor Pattern}
+
+V tem projektu je veliko dela z AST-jem in njegovim prehajanjem ter različnimi operacijami nad posameznimi AST vozlišči, pri čemer sem uporabil načrtovalski vzorec Visitor. Ta vzorec omogoča ločitev same strukture elementov od operacij, ki jih izvajamo nad njimi. Uporaben je predvsem pri strukturah, kot so različni grafi z različnimi vozlišči, ter drevesne strukture, kot je npr. AST, ki se pogosto uporablja v prevajalnikih, kjer potrebujemo več različnih operacij in funkcionalnosti, kot so preverjanje tipov (type-checking), optimizacija kode ali analiza toka (flow analysis) nad isto strukturo.
+
+Ta vzorec nam omogoča, da imamo ločene razrede za različne operacije nad AST-jem, ne da bi bilo treba spreminjati samo strukturo AST-ja ali obstoječe kode vozlišč. Največkrat je uporaben takrat, ko se struktura ne spreminja, potrebujemo pa več funkcionalnosti nad njo. Ključna prednost je tudi lažje dodajanje novih funkcionalnosti, saj dodamo nov visitor razred, brez poseganja v obstoječe razrede strukture in brez spreminjanja kode vozlišč.
+
+Če uporabimo AST kot primer strukture, ki je sestavljena kot drevo, imamo korensko (root) vozlišče, vsak node pa je določenega tipa. Vsak razred oziroma vsako vozlišče ima metodo \texttt{accept} (običajno tako poimenovano), ki kot argument sprejme visitorja. V metodi \texttt{accept} nato pokličemo metodo \texttt{visit}, kjer kot argument podamo trenutni objekt (this).
+
+Visitorji imajo metode \texttt{visit}, ki so običajno definirane za vsako vozlišče posebej, torej sprejemajo posamezno vozlišče kot argument. Visitorji lahko služijo tudi kot nosilci globalnega stanja, tako da ga ni treba podajati skozi parametre metod, ampak ga hranimo znotraj visitorja in uporabljamo v \texttt{visit} metodah.
+
+Najpogosteje posamezni visitor deduje od nekega generičnega visitorja, ki že vsebuje privzete implementacije vseh \texttt{visit} metod. To omogoča standardno prehajanje po drevesu, pri čemer pri implementaciji lastnega visitorja predefiniramo samo metode, ki nas zanimajo oziroma so potrebne za našo operacijo nad drevesom. S tem se izognemo implementaciji vseh \texttt{visit} metod za vsa vozlišča AST-ja, saj jih je zelo veliko.
+
+Na primer, če nas zanima funkcionalnost prepovedi klicanja funkcij, predefiniramo samo ustrezno vozlišče, npr. v Javi \texttt{MethodCallExpr}, kjer implementiramo \texttt{visit} metodo samo za to vozlišče.
+
+Ker je bila v našem primeru struktura AST že pripravljena, je bila naša naloga predvsem procesiranje oziroma obdelava tega drevesa. Struktura je bila pripravljena z uporabo zunanjih knjižnic za parsanje, mi pa smo dodali lastne visitorje za implementacijo specifičnih pravil. Pri tem smo predefinirali samo \texttt{visit} metode, ki smo jih dejansko potrebovali.
+
+Desing patters book
+
+\chapter{Implementacija orodja}
+\label{ch2}
+
+\section{Razčlenjevanje programske kode (parsing)}
+
+Moja naloga je analiziranje programske kode, kar pomeni, da moram izvorno kodo najprej razčleniti (parsati). Pri tem cilj ni bil razvoj lastnega parserja, temveč uporaba obstoječih orodij. Za vsak podprt programski jezik sem zato izbral ustrezno rešitev glede na njegove značilnosti in razpoložljive orodja.
+
+Za programski jezik C sem uporabil orodje \textit{ANTLR}, ki omogoča generiranje parserjev na podlagi formalno definiranih gramatik. Ker bi bilo pisanje celotne gramatike za C zelo zahtevno, sem uporabil že obstoječo gramatiko. ANTLR na tej osnovi generira parser, ki iz izvorne kode zgradi sintaktično drevo (angl. parse tree ali Concrete Syntax Tree – CST). Takšno drevo natančno sledi pravilom gramatike in vsebuje tudi vse vmesne korake razčlenjevanja (npr. pravila za izraze, operatorje, oklepaje ipd.).
+
+To pomeni, da je drevo bolj podrobno in vsebuje tudi elemente, ki za nadaljnjo analizo niso nujno pomembni. Posledično je analiza takega drevesa zahtevnejša, saj je treba med traversiranjem filtrirati relevantne dele ter pogosto ročno rekonstruirati višjenivojske konstrukte, ki bi bili v abstraktnem sintaktičnem drevesu že združeni.
+
+Za programski jezik Java sem uporabil knjižnico \textit{JavaParser}, ki ponuja že pripravljeno rešitev za razčlenjevanje Java kode in neposredno generiranje abstraktnega sintaktičnega drevesa (AST). Takšno drevo je poenostavljeno, saj ne vsebuje vseh podrobnosti konkretne sintakse, temveč zgolj bistvene programske konstrukte (npr. razrede, metode, izraze). Zaradi tega je bistveno bolj pregledno in primernejše za analizo. Poleg tega JavaParser ponuja bogat API za traversiranje drevesa, kar dodatno poenostavi implementacijo.
+
+Glavna razlika med uporabljenima pristopoma je torej v ravni abstrakcije in zahtevnosti obdelave. ANTLR z uporabo obstoječe gramatike omogoča fleksibilno rešitev za C, vendar zahteva več dela pri analizi zaradi podrobnega sintaktičnega drevesa. Po drugi strani JavaParser kot specializirana knjižnica za Javo že nudi abstraktno sintaktično drevo, kar omogoča hitrejšo in enostavnejšo implementacijo.
+
+V obeh primerih pa zgrajeno drevo (CST ali AST) predstavlja osnovo za nadaljnjo statično analizo kode, kot so štetje elementov, prepoznavanje konstrukcij in izračun različnih metrik.
+
+slika obeh
+
+https://www.cloudbees.com/blog/static-code-analysis
+
+\section{Arhitektura implementacije}
+
+Aplikacija je sestavljena iz več logičnih sklopov, kjer je vsak zadolžen za določeno funkcionalnost. Posamezne funkcionalnosti so med seboj ločene v različne pakete, kar omogoča boljšo preglednost in modularnost sistema.
+
+Glavni paketi vključujejo paket \texttt{cli}, ki skrbi za uporabniški vmesnik in obdelavo vhodnih argumentov ukazne vrstice, paket \texttt{handlers}, kjer so implementacije za posamezne programske jezike (Java in C), paket \texttt{parsers}, ki je zadolžen za razčlenjevanje izvorne kode v drevesno strukturo (AST ali CST), paket \texttt{rules}, ki predstavlja abstrakcijo nad posameznimi analizami, ter paket \texttt{visitors}, ki vsebuje implementacije za sprehajanje po drevesni strukturi. Visitorji so dodatno razdeljeni glede na programski jezik.
+
+Paket \texttt{analyzers} vsebuje razrede, ki skrbijo za izvajanje posameznih pravil ter za obdelavo in predstavitev rezultatov. Analyzer tako predstavlja povezavo med pravilom in končnim izpisom, saj poskrbi za zagon analize nad drevesno strukturo ter za ustrezno oblikovanje izhodnih podatkov.
+
+Pravila (angl. \textit{rules}) predstavljajo osnovno enoto analize v sistemu. Vsako pravilo ustreza eni konkretni funkcionalnosti oziroma enemu preverjanju nad programsko kodo. Na primer, pravilo lahko preverja pravilnost poimenovanja, zaznava neuporabljene spremenljivke ali prepoved uporabe določenih funckij. Vsako pravilo se tako ne ukvarja z načinom izpisa rezultatov, temveč zgolj z logiko preverjanja, medtem ko analyzer poskrbi za interpretacijo in prikaz teh rezultatov uporabniku.
+
+Izvajanje programa poteka po vnaprej določenem zaporedju. Najprej uporabniški vmesnik (CLI) sprejme vhodne podatke, ki vključujejo pot do datoteke ali mape ter izbrane pravila. Na podlagi podanih argumentov se določi ustrezen programski jezik in izbere pripadajoča implementacija razreda \texttt{Handler}.
+
+Razred \texttt{Handler} nato sproži razčlenjevanje kode z uporabo ustreznega parserja, ki iz izvorne kode zgradi drevesno strukturo. Nad to strukturo se nato izvedejo izbrana pravila. Posamezna pravila se izvajajo s pomočjo vzorca Visitor, kjer visitorji prehajajo drevo in zbirajo podatke ali zaznavajo morebitne nepravilnosti.
+
+Rezultati pravil se zbirajo v skupni podatkovni strukturi in se na koncu izpišejo uporabniku preko ukazne vrstice.
+
+\subsection{Dodajanje novih pravil}
+
+Zasnova sistema omogoča enostavno razširjanje z novimi pravili. Tak pristop omogoča modularno nadgradnjo sistema brez večjih sprememb v obstoječi kodi.
+
+Postopek dodajanja novega pravila je sestavljen iz več korakov. Najprej se definira novo pravilo, ki določa, katera lastnost programske kode se preverja. Nato je potrebno implementirati ustrezne visitorje za vsak podprt programski jezik.
+
+Med prehajanjem drevesa visitorji zbirajo podatke ali zaznavajo kršitve pravil, ki se shranjujejo v skupni kontekst. Na podlagi teh podatkov se nato izvede zaključna obdelava v določenem analizatorju, kjer se rezultati ustrezno oblikujejo in prikažejo uporabniku.
+
+Takšna zasnova omogoča, da se nova pravila dodajajo neodvisno od obstoječih, pri čemer je potrebno zagotoviti le implementacijo visitorjev za posamezne jezike ter vključitev pravila v tok izvajanja programa. S tem sistem ostaja pregleden, razširljiv in enostaven za vzdrževanje.
+
+\section{Implementacija posameznih pravil}
+
+TODO: Opozorimo uporabnika oz koga upozorimo.
+
+Pri implementaciji smo se odločili, da kot prvi argument vedno podamo pot do datoteke ali mape, ki jo želimo analizirati. Če podamo mapo, moramo z zastavico `--lang` dodatno določiti programski jezik (`java` ali `c`), saj program iz same mape ne more samodejno razbrati jezika.
+
+Pravila smo razdelili v tri kategorije. Prva je kategorija \textit{Info}, ki podaja različne informacije in metrike o kodi (`--info`). Druga je kategorija \textit{Good practices}, ki preverja uporabo dobrih praks v programu (`--good-practices`). Tretja kategorija pa so \textit{Constraints} oziroma prepovedi in omejitve, ki predstavljajo glavno prednost programa, saj omogočajo preverjanje nezaželenih vzorcev in omejitev v kodi.
+
+Vsa pravila iz kategorije \textit{Info} zaženemo z zastavico `--info`, pravila iz kategorije \textit{Good practices} pa z zastavico `--good-practices`. Pravila iz kategorije \textit{Constraints} se zaganjajo posamično, saj posamezna pravila zahtevajo različne dodatne argumente.
+
+V nadaljevanju so predstavljene vse kategorije ter posamezna pravila.
+
+\subsection{Info pravila (--info)}
+
+\subsubsection{Klicni graf (--call-graph)}
+
+To pravilo izpiše klicni graf funkcij oziroma metod v programu. Prikazuje, katere funkcije kliče posamezna funkcija oziroma metoda.
+
+Pravilo je uporabno za razumevanje strukture programa, saj omogoča vpogled v povezave med funkcijami. Klicni graf lahko pomaga pri odkrivanju kompleksnih odvisnosti med deli kode, kar je koristno pri optimizaciji programa, odpravljanju napak in vzdrževanju kode.
+
+Obiskovalca za to pravilo delujeta tako, da se ustavita na vozlišču, kjer je funkcija oziroma metoda definirana, nato pa znotraj njenega telesa poiščeta vsa vozlišča, ki predstavljajo klice funkcij ali metod.
+
+\subsubsection{Odvisnosti med razredi (--class-deps, Java only)}
+
+To pravilo izračuna odvisnosti med razredi v projektu in prikaže, kateri razredi uporabljajo druge razrede ter v kakšnem kontekstu uporabe. Rezultat je graf odvisnosti, ki omogoča vpogled v strukturo projekta na nivoju razredov.
+
+Pravilo je podprto samo za Javo, saj temelji na objektno usmerjenem modelu, kjer so razredi jasno definirani in imajo eksplicitne tipe, dedovanje ter konstrukte, kot so polja, metode in instanciranje objektov. V jeziku C takšne strukture ne obstajajo na enak način, zato neposredna analiza razrednih odvisnosti ni smiselna.
+
+Analiza temelji na več fazah. Najprej se izvede pripravljalna faza, kjer se skozi vse vhodne datoteke projekta zbere seznam vseh definiranih razredov. Ta korak je pomemben, saj omogoča, da kasnejša analiza pravilno prepozna, ali gre za tip znotraj projekta ali zunanji tip iz knjižnic.
+
+V drugi fazi se izvede dejanska analiza AST dreves, kjer obiskovalec pregleda različne konstrukte, kot so:
+\begin{itemize}
+    \item deklaracije polj,
+    \item povratni tipi metod,
+    \item parametri metod,
+    \item instanciranje objektov.
+\end{itemize}
+
+Za vsak zaznan tip, ki pripada projektu, se zabeleži odvisnost med trenutnim razredom in uporabljenim razredom. Poleg same povezave se shrani tudi kontekst uporabe, ki lahko vključuje:
+\texttt{FIELD}, \texttt{RETURN\_TYPE}, \texttt{PARAMETER} in \texttt{INSTANTIATION}.
+
+Na ta način je mogoče natančno analizirati, kako posamezni razredi sodelujejo med seboj in v kakšnem smislu so povezani.
+
+\subsubsection{Tipi v uporabi (--used-types)}
+
+To pravilo analizira vse tipe, ki se uporabljajo v programu, in zabeleži, v kakšnem kontekstu se pojavljajo. Namen pravila je podati pregled nad tem, katere podatkovne tipe program dejansko uporablja in na katerih mestih.
+
+Analiza se izvaja tako, da se v abstraktnem sintaktičnem drevesu obišče več različnih vrst vozlišč, kjer se tipi lahko pojavijo. To vključuje deklaracije spremenljivk, metode, parametre, generične tipe, pretvorbe tipov ter druge konstrukte.
+
+Zabeleženi konteksti uporabe tipov so naslednji:
+\begin{itemize}
+    \item \texttt{FIELD} – tip polja v razredu,
+    \item \texttt{LOCAL\_VARIABLE} – lokalna spremenljivka,
+    \item \texttt{PARAMETER} – parameter metode,
+    \item \texttt{RETURN\_TYPE} – povratni tip metode,
+    \item \texttt{INSTANTIATION} – ustvarjanje objekta,
+    \item \texttt{CAST} – pretvorba tipa,
+    \item \texttt{GENERIC\_ARGUMENT} – generični argumenti,
+    \item \texttt{ARRAY\_COMPONENT} – elementi polja,
+    \item \texttt{THROWS} – izjeme,
+    \item \texttt{EXTENDS} – dedovanje razreda,
+    \item \texttt{IMPLEMENTS} – implementacija vmesnikov.
+\end{itemize}
+
+Vsakič, ko se tip pojavi v enem izmed teh kontekstov, se zabeleži njegova uporaba. S tem se omogoča podrobna analiza strukture programa in uporabe podatkovnih tipov.
+
+V primeru jezika C je implementacija podobna, vendar temelji na drugačnem sintaktičnem drevesu (ANTLR C grammar). Ker C nima objektno usmerjenih konceptov, se nekatere kategorije, kot sta \texttt{EXTENDS} in \texttt{IMPLEMENTS}, ne uporabljajo, ostali konteksti pa so prilagojeni C sintaksi (npr. deklaracije struktur, kazalci in funkcije).
+
+\subsubsection{Gnezdenje zank (--loop-nesting)}
+
+To pravilo določa največjo globino gnezdenja zank v programu. Zanka je del kode, namenjen ponavljanju določenega dela programa, dokler ni izpolnjen določen pogoj. V obeh jezikih poznamo več vrst zank, na primer \texttt{while} in \texttt{for}. Če se znotraj ene zanke nahaja druga zanka, se globina gnezdenja poveča. Na primer, če je znotraj \texttt{while} zanke še \texttt{for} zanka, je globina gnezdenja enaka 2.
+
+Čeprav je gnezdenje zank pogosto in uporabno, lahko prevelika globina vodi do slabše berljive kode in večje časovne zahtevnosti programa. Zaradi tega se je smiselno izogibati preglobokemu gnezdenju, saj pogosto obstajajo bolj pregledne in učinkovite rešitve.
+
+Obiskovalca sta implementirana tako, da se ob obisku vozlišča, ki predstavlja zanko (v obeh jezikih so to \texttt{for}, \texttt{while}, \texttt{do-while} in \texttt{foreach} ni res zanke), poveča števec trenutne globine gnezdenja ter sproti spremlja največja dosežena globina.
+
+\section{Dobre prakse (--good-practices)}
+
+\subsubsection{Poimenovanje (--naming)}
+
+Pri programiranju je pomembno upoštevati standardne prakse poimenovanja, saj te izboljšajo berljivost in razumljivost kode. Pravilo preverja, ali so različni konstrukti poimenovani v skladu s standardnimi smernicami posameznega programskega jezika. To je posebej pomembno pri učenju programiranja, saj se študenti že zgodaj navadijo pisanja bolj kakovostne in pregledne kode. Pravilo izpiše opozorilo na mestih, kjer poimenovanje ne ustreza pričakovanim standardom.
+
+V Javi se za razrede, vmesnike in enumeracije uporablja zapis \texttt{PascalCase}. Za metode, lokalne spremenljivke, parametre in nekonstantna polja se uporablja \texttt{camelCase}, medtem ko se za konstante in enum konstante uporablja \texttt{UPPER\_SNAKE\_CASE}. Pri generičnih tipih se običajno uporablja ena velika črka.
+
+V jeziku C se podobno uporablja \texttt{camelCase} za funkcije in lokalne spremenljivke, \texttt{UPPER\_SNAKE\_CASE} za makre in konstante, za strukture, unije, enumeracije ter uporabniško definirane tipe pa se pogosto uporablja \texttt{PascalCase}.
+
+Implementacija v obeh jezikih temelji na obisku vozlišč abstraktnega sintaktičnega drevesa, kjer se z uporabo regularnih izrazov preveri pravilnost poimenovanja posameznega konstrukta.
+
+Seveda obstajajo tudi izjeme, kjer standardnim pravilom ni mogoče ali smiselno slediti, vendar pravilo preverja najpogosteje uporabljene konvencije poimenovanja.
+
+\subsubsection{Neuporabljene lokalne spremenljivke (--unused-locals)}
+
+Neuporabljene lokalne spremenljivke, funkcije oziroma metode lahko nakazujejo neurejeno ali nedokončano kodo ter zmanjšujejo njeno berljivost. Pravilo preverja definicije lokalnih spremenljivk, parametrov in drugih konstrukcij ter izpiše opozorilo, kadar ti nikoli niso uporabljeni.
+
+Čeprav gre pogosto za manjšo napako, je pomembno, da se študenti zavedajo pomena čiste kode. S pomočjo tega pravila lahko izboljšajo preglednost in kakovost svojih programov.
+
+Implementacija pravila je razmeroma preprosta. Ob obisku definicijskih vozlišč se shranijo deklarirani konstrukti, nato pa se med pregledovanjem ostalih izrazov preverja njihova uporaba v programu. Če uporaba ni zaznana, se izpiše opozorilo.
+
+\subsubsection{Neuporabljeni importi (--unused-imports, Java only)}
+
+To pravilo preverja, ali program vsebuje uvoze paketov, ki niso nikjer uporabljeni. V primeru neuporabljenih uvozov se izpiše opozorilo. Pravilo je podprto samo za Javo, saj sistem vključevanja knjižnic v jeziku C deluje drugače kot uvozi v Javi.
+
+Podobno kot pri neuporabljenih lokalnih spremenljivkah tudi neuporabljeni uvozi zmanjšujejo preglednost kode in lahko otežujejo njeno branje. Pravilo tako spodbuja ohranjanje samo dejansko uporabljenih uvozov.
+
+Implementacija je preprosta. Obiskovalec najprej poišče vsa vozlišča, ki predstavljajo uvoze, nato pa preveri, ali se uvoženi razredi oziroma paketi pojavijo med uporabo v programu.
+
+\subsubsection{Dolžina metod (--long-methods)}
+
+Predolge funkcije oziroma metode zmanjšujejo berljivost kode in pogosto opravljajo več različnih nalog hkrati. Dobra praksa je, da posamezna metoda opravlja eno jasno določeno nalogo in ostane čim krajša. To pravilo preverja dolžino metod in izpiše opozorilo, kadar ta preseže določeno mejo.
+
+Privzeta največja dovoljena dolžina metode je 30 vrstic, vendar je vrednost nastavljiva z argumentom, na primer \texttt{--long-methods=50}.
+
+Takšno pravilo je uporabno predvsem pri učenju programiranja, saj študente spodbuja k pisanju bolj modularne in pregledne kode.
+
+Implementacija pravila temelji na pregledu definicij funkcij oziroma metod. Za vsako metodo se izračuna razlika med začetno in končno vrstico definicije ter se preveri, ali dolžina presega nastavljeno omejitev.
+
+\subsection{Omejitvena pravila}
+
+\subsubsection{Prepoved uporabe določenih metod (--forbid-methods)}
+
+To pravilo omogoča prepoved uporabe določenih funkcij oziroma metod. Uporablja se tako, da se po zastavici podajo dodatni argumenti, ločeni z vejico, ki predstavljajo imena metod oziroma funkcij, katerih uporaba je prepovedana.
+
+Pravilo je uporabno predvsem v učnem okolju, saj številne funkcionalnosti že obstajajo v standardnih knjižnicah ali drugih knjižnicah programskega jezika. Kljub temu je pomembno, da se študenti naučijo osnovne algoritme implementirati sami, brez zanašanja na vnaprej pripravljene rešitve. S tem lahko profesor omeji uporabo določenih metod oziroma funckij in preveri, ali so se študenti držali danih zahtev.
+
+Implementacija pravila je razmeroma enostavna, saj se v abstraktnem sintaktičnem drevesu (AST) preverjajo vozlišča, ki predstavljajo klice funkcij oziroma metod (\textit{method/function call expression}). Ob zaznanem klicu prepovedane metode se izpiše opozorilo.
+
+\subsubsection{Prepoved uporabe tipov (--forbid-types)}
+
+S tem pravilom je mogoče omejiti uporabo določenih podatkovnih tipov, ki se prav tako podajo kot argumenti zastavici, ločeni z vejicami.
+
+Namen pravila je spodbuditi študente, da določene strukture ali funkcionalnosti implementirajo sami, namesto da uporabljajo že obstoječe implementacije. Na primer, če želimo, da študenti implementirajo lastno različico seznama, lahko prepovemo uporabo tipov, kot sta \texttt{ArrayList} ali \texttt{LinkedList}, ter jih spodbudimo k razmišljanju o lastni implementaciji.
+
+Implementacija pravila zahteva pregled več različnih delov AST-ja, saj se tipi pojavljajo na različnih mestih, na primer v deklaracijah spremenljivk, parametrih metod, generičnih tipih ter v \texttt{catch} blokih. Zato obiskovalec pregleda vsa relevantna vozlišča in preveri, ali se uporablja prepovedan tip.
+
+\subsubsection{Prepoved specifičnih klicev (--deny)}
+
+S tem pravilom je mogoče definirati, katere funkcije oziroma metode ne smejo biti klicane znotraj določenih drugih funkcij oziroma metod. Pravilo sprejme pare v obliki \texttt{Caller=Callee}, ločene z vejicami, ki določajo, katera funkcija ne sme klicati katere.
+
+Takšna omejitev je uporabna predvsem v učnem procesu, kjer želimo omejiti uporabo določenih funkcionalnosti ali spodbuditi drugačen način reševanja problema. Na primer, lahko prepovemo, da rekurzivna funkcija uporablja določene pomožne funkcije, ali pa omejimo uporabo standardnih knjižničnih funkcij znotraj določenih nalog. Omejimo in prepovemo lahko tudi rekurzijo.
+
+Implementacija temelji na spremljanju trenutnega konteksta ob obisku vozlišč, ki predstavljajo klice funkcij. Hkrati se beleži, v kateri funkciji se trenutno nahajamo, in se preverja, ali je klic dovoljen glede na definirana pravila.
+
+\subsubsection{Prepoved kontrolnega toka (--forbid-control-flow)}
+
+To pravilo omogoča prepoved uporabe določenih konstrukcij kontrolnega toka. Kot argumenti se lahko podajo ključne besede, kot so \texttt{BREAK}, \texttt{CONTINUE}, \texttt{RETURN}, \texttt{INSTANCEOF} (samo v Javi) in \texttt{GOTO} (samo v C-ju).
+
+Konstrukcije kontrolnega toka vplivajo na potek izvajanja programa, na primer z prekinitvijo zank ali pogojnim skakanjem med deli kode. Čeprav so v določenih primerih uporabne, se pogosto priporoča njihova omejena uporaba, saj lahko zmanjšajo berljivost in strukturiranost kode.
+
+Pravilo omogoča, da se študente usmeri k bolj strukturiranemu programiranju, kjer se kontrolni tok izvaja na bolj pregleden način, brez uporabe skokov ali nenadnih prekinitev. Na primer, namesto uporabe \texttt{INSTANCEOF} se lahko uporabi polimorfizem, kjer se vedenje objektov določa preko podtipov in prepisovanja metod. V jeziku C pa se uporaba \texttt{GOTO} praviloma nadomesti z zankami in strukturiranimi pogoji.
+
+Implementacija temelji na pregledu AST vozlišč, ki predstavljajo posamezne kontrolne stavke (npr. \textit{break statement}, \textit{return statement}, \textit{instanceof expression}). Ob zaznavi takšnega vozlišča se preveri, ali je njegova uporaba dovoljena.
+
+\subsubsection{Prepoved dostopa do polj (--forbid-field-access, Java only)}
+
+V objektno usmerjenih jezikih, kot je Java, razredi vsebujejo polja (atribute), do katerih neposreden dostop pogosto ni priporočljiv. Neposreden dostop do polj lahko krši načela enkapsulacije, saj onemogoča nadzor nad spreminjanjem notranjega stanja objekta. Zato je priporočljivo uporabljati metode za dostop in spreminjanje vrednosti, kot so getterji in setterji.
+
+To pravilo spodbuja uporabo enkapsulacije in učenje dobrih praks objektno usmerjenega programiranja. Namenjeno je predvsem študentom, ki se učijo Jave, saj jih usmerja k pravilni uporabi razredov in objektov. V jeziku C to pravilo ni relevantno, saj ne podpira objektno usmerjenega programskega modela.
+
+Implementacija temelji na pregledu AST vozlišč, ki predstavljajo dostop do polj (\textit{field access expressions}). Ob zaznavi neposrednega dostopa do polja se izpiše opozorilo.
+
+\subsubsection{Način uporabe primitivnih tipov (--primitive-mode, Java only)}
+
+To pravilo je specifično za Javo in omogoča preverjanje načina uporabe primitivnih podatkovnih tipov. Na voljo sta dva načina: \texttt{ONLY\_PRIMITIVE} in \texttt{NO\_PRIMITIVE}. V prvem primeru je dovoljena uporaba le primitivnih tipov, kot je \texttt{int}, medtem ko so ovojnice, kot je \texttt{Integer}, prepovedane. V drugem primeru pa velja obratno pravilo.
+
+Java razlikuje med primitivnimi tipi, ki neposredno hranijo vrednost, in referenčnimi tipi (ovojnicami), ki hranijo reference na objekte. Namen tega pravila je, da študenti bolje razumejo razliko med obema pristopoma ter vpliv na delovanje in učinkovitost programa.
+
+Implementacija temelji na pregledu deklaracij v AST drevesu, kjer se preverja tip posamezne spremenljivke. Glede na izbran način delovanja se nato preveri skladnost uporabljenih tipov in po potrebi izpiše opozorilo.
+
+\section{Razlike med obema podprtima jezikoma}
+
+Jezika sta oba imperativna programska jezika, vendar se vseeno precej razlikujeta. Največja razlika je v tem, da je Java objektno usmerjen programski jezik, medtem ko C to ni. Zato ima moj program več funkcionalnosti implementiranih za Javo, saj je v tem primeru potrebno zajeti tudi objektno usmerjene koncepte, kot so razredi, objekti in enkapsulacija.
+
+Ker C nima razredov, so nekatera pravila, ki so uporabna pri Javi, tukaj izpuščena. To pomeni, da lahko uporabnik sicer poda ustrezno zastavico v ukazni vrstici, vendar se pravilo ne izvede in program izpiše opozorilo (warning). Tak primer je npr. \texttt{--class-deps}, saj C nima razredov in zato tudi ne moremo analizirati njihovih odvisnosti.
+
+Podobno C nima pravila za \texttt{--unused-imports}, ker se vključevanje datotek prek \texttt{#include} direktiv razlikuje od uvoza paketov v Javi, zato neposredna primerjava ni smiselna. Prav tako ni podprto pravilo \texttt{--primitive-mode}, saj C nima enakega koncepta primitivnih tipov in ovojnih tipov (wrapperjev) kot Java, kjer lahko izbiramo med npr. \texttt{int} in \texttt{Integer}.
+
+Poleg tega v C-ju ne moremo prepovedati direktnega dostopa do polj (\texttt{--forbid-field-access}), ker je ta koncept vezan na razrede in objekte. V Javi se to pravilo uporablja za uveljavljanje enkapsulacije, kjer želimo dostop do podatkov omejiti prek metod (getterjev in setterjev).
+
+Oba jezika pa podpirata pravila za prepoved uporabe določenih kontrolnih struktur (\texttt{--forbid-control-flow}), na primer če želimo prepovedati uporabo ključne besede \texttt{break}. V obeh jezikih so skupna pravila \texttt{BREAK}, \texttt{CONTINUE} in \texttt{RETURN}. Razlike pa se pojavijo pri jezikovno specifičnih konstrukcijah: Java podpira \texttt{INSTANCEOF}, ki se uporablja za preverjanje tipa objekta, medtem ko C podpira \texttt{GOTO}.
+
+\section{Testiranje funkcionalnosti}
+
+Med razvojem sistema je bilo sproti izvedeno tudi testiranje posameznih pravil. Namen testiranja je bil preveriti pravilno delovanje analizatorja na različnih vrstah vhodne kode ter zagotoviti, da pravila pravilno zaznavajo kršitve in ustrezno obravnavajo pravilno napisano kodo.
+
+Testiranje je bilo izvedeno na več nivojih. Osnovni nivo predstavljajo posamezne datoteke s testno kodo, kjer so bili pripravljeni enostavni primeri za posamezna pravila. Ti primeri so bili zasnovani tako, da ciljano sprožijo posamezno pravilo ali pa preverijo, da se pravilo ne sproži v primeru pravilne kode.
+
+Na višjem nivoju so bili uporabljeni tudi večdatotečni projekti, kjer je bilo pomembno preveriti delovanje analizatorja na celotnem projektu. To je bilo še posebej pomembno pri pravilih, ki temeljijo na analizi več datotek, kot sta npr. odvisnosti med razredi in analiza uporabljenih tipov.
+
+Testiranje je bilo izvedeno kot integracijsko testiranje, kjer se celoten sistem za analizo kode zažene z različnimi konfiguracijami pravil. Namesto ročnega zagona preko ukazne vrstice je bil uporabljen notranji mehanizem za inicializacijo pravil, kar je omogočilo bolj nadzorovano in ponovljivo izvajanje testov.
+
+Testni primeri so bili razdeljeni glede na kategorije pravil. Pri pravilih iz skupine \textit{Info} je bil poudarek na preverjanju pravilnosti analize strukture kode in generiranju ustreznih rezultatov, kot so klicni graf, uporaba tipov in gnezdenje zank. Testni primeri so vključevali tako enostavne kot tudi kompleksnejše primere, s katerimi je bilo mogoče preveriti pravilno obiskovanje vseh relevantnih vozlišč v abstraktnem sintaktičnem drevesu.
+
+Pri pravilih dobrih praks je bilo testiranje osredotočeno na zaznavanje neustreznih vzorcev v kodi, kot so napačno poimenovanje, neuporabljene spremenljivke in predolge metode. Za vsako pravilo so bili pripravljeni tako pozitivni kot negativni primeri, kar omogoča preverjanje pravilnega sprožanja opozoril ter pravilnega obnašanja v primerih, kjer kršitve ni.
+
+Pri omejitvenih pravilih je bilo testiranje usmerjeno v preverjanje pravilnega sprožanja opozoril ob uporabi prepovedanih konstrukcij. V ta namen so bili pripravljeni primeri, ki vsebujejo kršitve (npr. uporaba prepovedanih metod, tipov ali kontrolnih struktur), ter primeri, kjer so omejitve spoštovane.
+
+Rezultati testiranja so pokazali, da sistem pravilno zazna kršitve pravil in ustrezno obdela tako enostavne kot tudi kompleksne primere vhodne kode. Poleg tega se je izkazalo, da je sistem stabilen tudi pri analizi večjih projektov, kjer so prisotne medsebojne odvisnosti med datotekami.
+
+\chapter{Rezultati}  % poglavje dodal Solina
+\label{slo}
+
+\chapter{Rezultati}
+\label{slo}
+
+Veliko programov za statično analizo kode, ki že obstajajo, je namenjenih profesionalni uporabi, kjer se predpostavlja, da uporabniki že poznajo dobre prakse programiranja in imajo dovolj izkušenj z razvojem programske opreme. Takšna orodja se največkrat uporabljajo kot del CI/CD procesov, kjer preverjajo skladnost kode z določenimi standardi, zaznavajo potencialne napake in ranljivosti ter pomagajo zagotavljati kakovost programske kode. Njihov namen je predvsem opozoriti izkušenega programerja na morebitne pomanjkljivosti ali stvari, ki jih je pri razvoju spregledal.
+
+Razvit program se od takšnih rešitev razlikuje, saj je namenjen predvsem učenju in izobraževanju študentov. Študentom omogoča, da lahko samostojno analizirajo svojo kodo, prepoznavajo napake in se ob tem učijo boljših programerskih praks. Hkrati program profesorjem omogoča vpogled v način programiranja študentov ter preverjanje uporabe določenih pristopov in tehnik.
+
+Posebna vrednost programa je podpora prepovednim pravilom oziroma omejitvam, s katerimi je mogoče študente spodbuditi k drugačnemu načinu razmišljanja in programiranja. S prepovedjo določenih enostavnih ali pogosto uporabljenih rešitev so študenti prisiljeni poiskati alternativne pristope, kar pripomore k boljšemu razumevanju programskih konceptov in razvoju širšega programerskega znanja in prepoved uporabe slabih praks in napačnega programiranja.
+
+Poleg same analize program vključuje tudi razlage, priporočila dobrih praks in dodatne informacije, ki so združene v enotnem sistemu. Na ta način program ne predstavlja zgolj orodja za preverjanje kode, temveč tudi učno okolje, ki spodbuja razvoj kakovostnega in premišljenega programiranja.
+
+TODO
+
+\section{Evalvacija na realnih primerih}
+
+TODO
+
+\chapter{Zaključek}
+\label{latex}
+
+V okviru diplomske naloge smo razvili sistem za statično analizo programske kode, osredotočen na programska jezika Java in C. Sistem se uporablja preko ukaznovrstičnega (CLI) uporabniškega vmesnika.
+
+Namenjen je predvsem uporabi v izobraževalnem okolju, kjer se študenti še učijo programiranja. Uporaben je tako za profesorje kot tudi za študente. Sistem omogoča preverjanje dobrih praks, pridobivanje informacij o programski kodi ter zahtevanje določenih omejitev, ki jih lahko profesor določi pri posameznih nalogah, kar je še posebej koritno, saj takšnih programov za statično analizo s to funkcionalnostjo, ter enostavno možnostjo razširitev, ni veliko.
+
+Pri učenju programiranja študenti največkrat ne uporabljajo dobrih praks in naprednih orodij, ki bi jih na to opozarjala, zato jim lahko takšen sistem pomaga pri usmerjanju k boljšemu pisanju kode, ter jih spodbuja k uporabi različnih programskih konceptov. Profesorjem pa omogoča enostavno preverjanje, ali študenti upoštevajo določene zahteve, omejitve in dobre prakse. Omogoča jim tudi vpogled v način programiranja brez da bi dejansko odprli datoteko s programsko kodo.
+
+\section{Nadaljnje delo}
+
+Sistemu pa je mogoče dodati še veliko izboljšav in funckionalnosti. Ena od glavnih prednosti trenutne zasnove je enostavno dodajanje novih pravil, kar pomeni, da je lahko sistem uporaben za različne ljudi in načine poučevanja.
+
+Prav tako je možna razširitev podpore na dodatne programske jezike, saj je arhitektura sistema zasnovana modularno, čeprav lahko pride do nekih omejitev zaradi razlik med posameznimi jeziki.
+
+Med možnimi nadgradnjami je tudi izboljšava izhoda, na primer dodajanje podpore za prikaz rezultatov v obliki HTML, kar bi omogočilo boljšo preglednost. Trenutno sistem sprejme eno vhodno datoteko ali mapo, možno pa bi ga bilo razširiti tako, da bi omogočal analizo več projektov hkrati, kar bi bilo uporabno predvsem za preverjanje nalog več študentov.
+
+Možnosti za nadgradnjo je še veliko, nadaljnji razvoj pa je odvisen predvsem od dejanske uporabe sistema in potreb uporabnikov.
+
+%\cleardoublepage
+%\addcontentsline{toc}{chapter}{Literatura}
+
+% če imaš težave poravnati desni rob bibliografije, potem odkomentiraj spodnjo vrstico
+\raggedright
+
+\printbibliography[heading=bibintoc,type=article,title={Članki v revijah}]
+
+\printbibliography[heading=bibintoc,type=inproceedings,title={Članki v zbornikih}]
+
+\printbibliography[heading=bibintoc,type=incollection,title={Poglavja v knjigah}]
+
+% v zadnji verziji diplomskega dela običajno združiš vse tri vrste referenc v en sam seznam in
+% izpustiš delne sezname
+\printbibliography[heading=bibintoc,title={Literatura}]
+
+\end{document}
+
+https://medium.com/@katie.wan/why-code-static-analysis-is-essential-for-modern-software-development-67a20cdd89f6
+

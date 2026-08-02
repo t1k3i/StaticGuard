@@ -2,7 +2,7 @@ package com.staticguard.rules.java;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.common.RuleContext;
-import com.staticguard.common.RuleVisitor;
+import com.staticguard.rules.RuleVisitor;
 import com.staticguard.enums.TypeContext;
 import com.staticguard.visitors.java.ClassDependencyVisitor;
 

@@ -1,0 +1,49 @@
+\babel@toc {english}{}\relax 
+\babel@toc {slovene}{}\relax 
+\contentsline {chapter}{Povzetek}{}{section*.3}%
+\babel@toc {english}{}\relax 
+\contentsline {chapter}{Abstract}{}{section*.5}%
+\babel@toc {slovene}{}\relax 
+\contentsline {chapter}{\numberline {1}Uvod}{1}{chapter.1}%
+\contentsline {chapter}{\numberline {2}Pregled sorodnih rešitev in literature}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Zakaj je statična analiza koristna}{3}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Orodja za statično analizo kode}{4}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Sorodna diplomska in magistrska dela}{6}{section.2.3}%
+\contentsline {chapter}{\numberline {3}Načrtovanje rešitve}{7}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Uporabljene metodologije}{7}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Zahteve sistema}{8}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Različni pristopi}{8}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Analiza nadzornega toka (CFG)}{9}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Analiza podatkovnega toka}{9}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}Analiza abstraktnega sintaktičnega drevesa (AST)}{10}{subsection.3.3.3}%
+\contentsline {section}{\numberline {3.4}Arhitektura rešitve}{11}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Visitor Pattern}{12}{subsection.3.4.1}%
+\contentsline {chapter}{\numberline {4}Implementacija orodja}{15}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Razčlenjevanje programske kode (parsing)}{15}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Arhitektura implementacije}{16}{section.4.2}%
+\contentsline {subsection}{\numberline {4.2.1}Dodajanje novih pravil}{17}{subsection.4.2.1}%
+\contentsline {section}{\numberline {4.3}Implementacija posameznih pravil}{18}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Info pravila (--info)}{19}{subsection.4.3.1}%
+\contentsline {subsubsection}{Klicni graf (--call-graph)}{19}{section*.7}%
+\contentsline {subsubsection}{Odvisnosti med razredi (--class-deps, Java only)}{19}{section*.8}%
+\contentsline {subsubsection}{Tipi v uporabi (--used-types)}{20}{section*.9}%
+\contentsline {subsubsection}{Gnezdenje zank (--loop-nesting)}{21}{section*.10}%
+\contentsline {section}{\numberline {4.4}Dobre prakse (--good-practices)}{22}{section.4.4}%
+\contentsline {subsubsection}{Poimenovanje (--naming)}{22}{section*.11}%
+\contentsline {subsubsection}{Neuporabljene lokalne spremenljivke (--unused-locals)}{22}{section*.12}%
+\contentsline {subsubsection}{Neuporabljeni importi (--unused-imports, Java only)}{23}{section*.13}%
+\contentsline {subsubsection}{Dolžina metod (--long-methods)}{23}{section*.14}%
+\contentsline {subsection}{\numberline {4.4.1}Omejitvena pravila}{24}{subsection.4.4.1}%
+\contentsline {subsubsection}{Prepoved uporabe določenih metod (--forbid-methods)}{24}{section*.15}%
+\contentsline {subsubsection}{Prepoved uporabe tipov (--forbid-types)}{24}{section*.16}%
+\contentsline {subsubsection}{Prepoved specifičnih klicev (--deny)}{25}{section*.17}%
+\contentsline {subsubsection}{Prepoved kontrolnega toka (--forbid-control-flow)}{25}{section*.18}%
+\contentsline {subsubsection}{Prepoved dostopa do polj (--forbid-field-access, Java only)}{26}{section*.19}%
+\contentsline {subsubsection}{Način uporabe primitivnih tipov (--primitive-mode, Java only)}{26}{section*.20}%
+\contentsline {section}{\numberline {4.5}Razlike med obema podprtima jezikoma}{27}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Testiranje funkcionalnosti}{27}{section.4.6}%
+\contentsline {chapter}{\numberline {5}Rezultati}{31}{chapter.5}%
+\contentsline {chapter}{\numberline {6}Rezultati}{33}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Evalvacija na realnih primerih}{34}{section.6.1}%
+\contentsline {chapter}{\numberline {7}Zaključek}{35}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Nadaljnje delo}{36}{section.7.1}%

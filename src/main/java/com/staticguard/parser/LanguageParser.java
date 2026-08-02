@@ -1,5 +1,8 @@
 package com.staticguard.parser;
 
+import com.staticguard.cli.CLIOptionsConfig;
+import com.staticguard.common.ProjectContext;
+import com.staticguard.common.RuleContext;
 import com.staticguard.enums.Language;
 
 import java.io.File;
@@ -15,6 +18,12 @@ public abstract class LanguageParser<T> {
     }
 
     public abstract T parse() throws IOException;
+
+    public abstract void handle(
+            CLIOptionsConfig config,
+            RuleContext context,
+            ProjectContext projectContext
+    ) throws Exception;
 
     public Language getLanguage() {
         return language;

@@ -107,6 +107,36 @@ public class CLIOptionsConfig {
         );
     }
 
+    private CLIOptionsConfig(Builder builder) {
+        this.language = builder.language;
+        this.runAll = builder.runAll;
+        this.development = builder.development;
+
+        this.runInfo = builder.runInfo;
+        this.callGraph = builder.callGraph;
+        this.classDependencies = builder.classDependencies;
+        this.usedTypes = builder.usedTypes;
+        this.loopNesting = builder.loopNesting;
+
+        this.runGoodPractices = builder.runGoodPractices;
+        this.unusedImports = builder.unusedImports;
+        this.unusedLocals = builder.unusedLocals;
+        this.naming = builder.naming;
+        this.longMethodsMaxLines = builder.longMethodsMaxLines;
+
+        this.forbiddenMethods = builder.forbiddenMethods;
+        this.forbiddenTypes = builder.forbiddenTypes;
+        this.forbiddenCalls = builder.forbiddenCalls;
+        this.forbiddenControlFlow = builder.forbiddenControlFlow;
+        this.forbidFieldAccess = builder.forbidFieldAccess;
+
+        this.primitiveMode = builder.primitiveMode;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
     private static Map<String, Set<String>> buildForbiddenCalls(
             List<Map.Entry<String, Set<String>>> forbiddenCalls
     ) {
@@ -203,5 +233,61 @@ public class CLIOptionsConfig {
 
     public PrimitiveTypeVisitor.Mode getPrimitiveMode() {
         return primitiveMode;
+    }
+
+    public static class Builder {
+
+        /* GENERAL */
+        private String language;
+        private boolean runAll;
+        private boolean development;
+
+        /* INFO */
+        private boolean runInfo;
+        private boolean callGraph;
+        private boolean classDependencies;
+        private boolean usedTypes;
+        private boolean loopNesting;
+
+        /* GOOD PRACTICES */
+        private boolean runGoodPractices;
+        private boolean unusedImports;
+        private boolean unusedLocals;
+        private boolean naming;
+        private Integer longMethodsMaxLines;
+
+        /* FORBIDDEN */
+        private Set<String> forbiddenMethods = new HashSet<>();
+        private Set<String> forbiddenTypes = new HashSet<>();
+        private Map<String, Set<String>> forbiddenCalls = new HashMap<>();
+        private Set<ControlFlowRule> forbiddenControlFlow = new HashSet<>();
+        private boolean forbidFieldAccess;
+        private PrimitiveTypeVisitor.Mode primitiveMode;
+
+        private Builder() {}
+
+        public CLIOptionsConfig build() {
+            return new CLIOptionsConfig(this);
+        }
+
+        public Builder language(String language) {
+            this.language = language;
+            return this;
+        }
+
+        public Builder runGoodPractices(boolean value) {
+            this.runGoodPractices = value;
+            return this;
+        }
+
+        public Builder naming(boolean value) {
+            this.naming = value;
+            return this;
+        }
+
+        public Builder development(boolean value) {
+            this.development = value;
+            return this;
+        }
     }
 }

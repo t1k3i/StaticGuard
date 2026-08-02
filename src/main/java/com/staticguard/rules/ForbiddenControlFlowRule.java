@@ -2,12 +2,9 @@ package com.staticguard.rules;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.common.RuleContext;
-import com.staticguard.common.RuleVisitor;
 import com.staticguard.enums.ControlFlowRule;
 import com.staticguard.visitors.c.CForbiddenControlFlowVisitor;
-import com.staticguard.visitors.c.CForbiddenFunctionVisitor;
 import com.staticguard.visitors.java.ForbiddenControlFlowVisitor;
-import com.staticguard.visitors.java.ForbiddenMethodVisitor;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.Set;

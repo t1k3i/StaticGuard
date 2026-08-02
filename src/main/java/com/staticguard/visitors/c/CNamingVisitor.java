@@ -15,6 +15,8 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
     private final RuleContext context;
     private final boolean addComments;
 
+    // TODO: add variables naming
+
     public CNamingVisitor(RuleContext context) {
         this.context = context;
         this.addComments = false;

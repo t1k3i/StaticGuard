@@ -1,7 +1,6 @@
 package com.staticguard.analyzers;
 
 import com.staticguard.common.RuleContext;
-import com.staticguard.common.RuleVisitor;
 import com.staticguard.enums.TypeContext;
 import com.staticguard.rules.UsedTypesRule;
 

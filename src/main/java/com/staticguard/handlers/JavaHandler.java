@@ -6,21 +6,17 @@ import com.staticguard.analyzers.java.*;
 import com.staticguard.common.ProjectContext;
 import com.staticguard.common.RuleContext;
 import com.staticguard.cli.CLIOptionsConfig;
-import com.staticguard.common.RuleVisitor;
+import com.staticguard.rules.RuleVisitor;
 import com.staticguard.rules.*;
 import com.staticguard.rules.java.ClassDependencyRule;
 import com.staticguard.rules.java.ForbiddenFieldAccessRule;
 import com.staticguard.rules.java.PrimitiveTypeRule;
 import com.staticguard.rules.java.UnusedImportsRule;
 
-import java.io.File;
-
-public class JavaHandler implements LanguageHandler {
+public class JavaHandler implements LanguageHandler<CompilationUnit> {
     @Override
-    public void handle(Object root, CLIOptionsConfig config, File sourceFile, ProjectContext projectContext) {
-        CompilationUnit cu = (CompilationUnit) root;
-        VisitorManager<CompilationUnit> manager = new VisitorManager<>(cu);
-        RuleContext context = new RuleContext(sourceFile);
+    public void handle(CompilationUnit root, CLIOptionsConfig config, RuleContext context, ProjectContext projectContext) {
+        VisitorManager<CompilationUnit> manager = new VisitorManager<>(root);
 
         boolean runInfo = config.isRunInfo();
         boolean runGood = config.isRunGoodPractices();

@@ -1,7 +1,7 @@
 package com.staticguard.analyzers;
 
 import com.staticguard.common.RuleContext;
-import com.staticguard.common.RuleVisitor;
+import com.staticguard.rules.RuleVisitor;
 
 public class GenericAnalyzer<T> implements Analyzer<T> {
 

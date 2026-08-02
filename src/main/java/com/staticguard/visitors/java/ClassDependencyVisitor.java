@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.staticguard.enums.TypeContext;
 
@@ -14,6 +15,7 @@ import java.util.*;
 public class ClassDependencyVisitor extends VoidVisitorAdapter<Object> {
     private final Set<String> projectClasses;
     private final Map<String, Map<String, Set<TypeContext>>> dependencies;
+    private final Set<String> classesInFile = new HashSet<>();
 
     private String currentClass;
 
@@ -22,6 +24,19 @@ public class ClassDependencyVisitor extends VoidVisitorAdapter<Object> {
             Map<String, Map<String, Set<TypeContext>>> dependencies) {
         this.projectClasses = projectClasses;
         this.dependencies = dependencies;
+    }
+
+    @Override
+    public void visit(CompilationUnit cu, Object arg) {
+        // Pre-collect all classes in the file before processing dependencies
+        if (projectClasses.isEmpty()) {
+            cu.findAll(ClassOrInterfaceDeclaration.class)
+                    .forEach(cls -> classesInFile.add(
+                            cls.getFullyQualifiedName()
+                                    .orElse(cls.getNameAsString())
+                    ));
+        }
+        super.visit(cu, arg);
     }
 
     @Override
@@ -64,7 +79,8 @@ public class ClassDependencyVisitor extends VoidVisitorAdapter<Object> {
     private void recordType(String typeName, TypeContext context) {
         if (currentClass == null) return;
 
-        if (!projectClasses.contains(typeName)) return;
+        Set<String> classesToCheck = projectClasses.isEmpty() ? classesInFile : projectClasses;
+        if (!classesToCheck.contains(typeName)) return;
 
         dependencies
                 .computeIfAbsent(currentClass, k -> new HashMap<>())

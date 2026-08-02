@@ -3,6 +3,7 @@ package com.staticguard.cli;
 import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.analyzers.java.ProjectClassCollectorAnalyzer;
 import com.staticguard.common.ProjectContext;
+import com.staticguard.common.RuleContext;
 import com.staticguard.enums.ControlFlowRule;
 import com.staticguard.enums.Language;
 import com.staticguard.handlers.CHandler;
@@ -10,6 +11,7 @@ import com.staticguard.handlers.JavaHandler;
 import com.staticguard.parser.LanguageParser;
 import com.staticguard.parser.ParserFactory;
 import com.staticguard.visitors.java.PrimitiveTypeVisitor;
+import org.antlr.v4.runtime.tree.ParseTree;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -196,15 +198,8 @@ public class CLIOptions implements Callable<Integer> {
 
     private void handleSingleFile(File file, CLIOptionsConfig config, ProjectContext projectContext) throws Exception {
         LanguageParser<?> parser = ParserFactory.createParser(file);
-
-        System.out.println("Parsing file: " + file.getName());
-        Object ast = parser.parse();
-        System.out.println("Parsing succeeded.");
-
-        switch (parser.getLanguage()) {
-            case C -> new CHandler().handle(ast, config, file, projectContext);
-            case JAVA -> new JavaHandler().handle(ast, config, file, projectContext);
-        }
+        var context = new RuleContext(file);
+        parser.handle(config, context, projectContext);
     }
 
     private void handleProject(File dir, CLIOptionsConfig config) throws Exception {

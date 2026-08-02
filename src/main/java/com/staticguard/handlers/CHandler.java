@@ -9,12 +9,10 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.io.File;
 
-public class CHandler implements LanguageHandler {
+public class CHandler implements LanguageHandler<ParseTree> {
     @Override
-    public void handle(Object root, CLIOptionsConfig config, File sourceFile, ProjectContext projectContext) {
-        ParseTree ast = (ParseTree) root;
-        VisitorManager<ParseTree> manager = new VisitorManager<>(ast);
-        RuleContext context = new RuleContext(sourceFile);
+    public void handle(ParseTree root, CLIOptionsConfig config, RuleContext context, ProjectContext projectContext) {
+        VisitorManager<ParseTree> manager = new VisitorManager<>(root);
 
         boolean runInfo = config.isRunInfo();
         boolean runGood = config.isRunGoodPractices();
