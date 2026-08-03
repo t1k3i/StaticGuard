@@ -1,5 +1,7 @@
 package com.staticguard.parser;
 
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
 import com.staticguard.cli.CLIOptionsConfig;
@@ -19,7 +21,13 @@ public class JavaLanguageParser extends LanguageParser<CompilationUnit> {
 
     @Override
     public CompilationUnit parse() throws FileNotFoundException {
-        return StaticJavaParser.parse(file);
+        ParserConfiguration config = new ParserConfiguration()
+                .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21);
+        JavaParser parser = new JavaParser(config);
+
+        return parser.parse(file)
+                .getResult()
+                .orElseThrow();
     }
 
     @Override

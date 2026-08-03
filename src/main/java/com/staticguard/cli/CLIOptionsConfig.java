@@ -32,6 +32,7 @@ public class CLIOptionsConfig {
     private final Set<ControlFlowRule> forbiddenControlFlow;
     private final boolean forbidFieldAccess;
     private final PrimitiveTypeVisitor.Mode primitiveMode;
+    private final Set<String> primitiveExceptions;
 
     public CLIOptionsConfig(
             String language,
@@ -56,7 +57,8 @@ public class CLIOptionsConfig {
             Set<ControlFlowRule> forbiddenControlFlow,
             boolean forbidFieldAccess,
 
-            PrimitiveTypeVisitor.Mode primitiveMode
+            PrimitiveTypeVisitor.Mode primitiveMode,
+            Set<String> primitiveExceptions
     ) {
         this.language = language;
         this.runAll = runAll;
@@ -81,6 +83,7 @@ public class CLIOptionsConfig {
         this.forbidFieldAccess = forbidFieldAccess;
 
         this.primitiveMode = primitiveMode;
+        this.primitiveExceptions = primitiveExceptions != null ? primitiveExceptions : Collections.emptySet();
     }
 
     public static CLIOptionsConfig fromCLI(CLIOptions cli) {
@@ -103,7 +106,8 @@ public class CLIOptionsConfig {
                 buildForbiddenCalls(cli.forbiddenCalls),
                 cli.forbiddenControlFlow,
                 cli.forbidFieldAccess,
-                cli.primitiveMode
+                cli.primitiveMode,
+                new HashSet<>(cli.primitiveExceptions)
         );
     }
 
@@ -131,6 +135,7 @@ public class CLIOptionsConfig {
         this.forbidFieldAccess = builder.forbidFieldAccess;
 
         this.primitiveMode = builder.primitiveMode;
+        this.primitiveExceptions = builder.primitiveExceptions != null ? builder.primitiveExceptions : Collections.emptySet();
     }
 
     public static Builder builder() {
@@ -235,6 +240,10 @@ public class CLIOptionsConfig {
         return primitiveMode;
     }
 
+    public Set<String> getPrimitiveExceptions() {
+        return primitiveExceptions;
+    }
+
     public static class Builder {
 
         /* GENERAL */
@@ -263,11 +272,27 @@ public class CLIOptionsConfig {
         private Set<ControlFlowRule> forbiddenControlFlow = new HashSet<>();
         private boolean forbidFieldAccess;
         private PrimitiveTypeVisitor.Mode primitiveMode;
+        private Set<String> primitiveExceptions = new HashSet<>();
 
         private Builder() {}
 
         public CLIOptionsConfig build() {
             return new CLIOptionsConfig(this);
+        }
+
+        public Builder primitiveMode(PrimitiveTypeVisitor.Mode mode) {
+            this.primitiveMode = mode;
+            return this;
+        }
+
+        public Builder primitiveExceptions(Set<String> exceptions) {
+            this.primitiveExceptions = exceptions;
+            return this;
+        }
+
+        public Builder usedTypes(boolean value) {
+            this.usedTypes = value;
+            return this;
         }
 
         public Builder language(String language) {

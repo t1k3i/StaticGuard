@@ -115,7 +115,10 @@ public class JavaHandler implements LanguageHandler<CompilationUnit> {
         }
 
         if (config.getPrimitiveMode() != null) {
-            var primitiveTypeRule = new PrimitiveTypeRule<CompilationUnit>(config.getPrimitiveMode());
+            var primitiveTypeRule = new PrimitiveTypeRule<CompilationUnit>(
+                    config.getPrimitiveMode(),
+                    config.getPrimitiveExceptions()
+            );
             manager.addVisitor(
                     new GenericAnalyzer<>(
                             context,

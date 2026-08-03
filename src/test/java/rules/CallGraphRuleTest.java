@@ -11,10 +11,9 @@ import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CallGraphRuleTest {
+class CallGraphRuleTest {
 
     private Map<String, Set<String>> analyze(File file) throws Exception {
         LanguageParser<?> parser = ParserFactory.createParser(file);
@@ -35,22 +34,38 @@ public class CallGraphRuleTest {
         File file = new File("src/test/resources/samples/c/CallGraph.c");
         var graph = analyze(file);
 
-        assertTrue(graph.containsKey("root"));
-        assertTrue(graph.get("root").contains("branchA"));
-        assertTrue(graph.get("root").contains("branchB"));
+        // main
+        assertTrue(graph.get("main").contains("linear"));
+        assertTrue(graph.get("main").contains("branch"));
+        assertTrue(graph.get("main").contains("recursive"));
+        assertTrue(graph.get("main").contains("mutualA"));
+        assertTrue(graph.get("main").contains("work"));
 
-        assertTrue(graph.get("branchA").contains("helper"));
-        assertTrue(graph.get("helper").contains("leaf"));
+        // linear
+        assertTrue(graph.get("linear").contains("leaf"));
 
-        assertTrue(graph.get("branchB").contains("leaf"));
+        // branching
+        assertTrue(graph.get("branch").contains("left"));
+        assertTrue(graph.get("branch").contains("right"));
 
-        assertTrue(graph.get("main").contains("root"));
+        // empty
+        assertTrue(graph.get("left").isEmpty());
+        assertTrue(graph.get("right").isEmpty());
+        assertTrue(graph.get("leaf").isEmpty());
 
-        assertTrue(graph.containsKey("recursion"));
-        assertTrue(graph.get("recursion").contains("recursion"));
+        // recursion
+        assertTrue(graph.get("recursive").contains("recursive"));
 
-        assertTrue(graph.containsKey("unused"));
-        assertTrue(graph.get("unused").isEmpty());
+        // mutual recursion
+        assertTrue(graph.get("mutualA").contains("mutualB"));
+        assertTrue(graph.get("mutualB").contains("mutualA"));
+
+        // helper chain
+        assertTrue(graph.get("work").contains("finish"));
+
+        // unused
+        assertTrue(graph.get("unused").contains("dead"));
+        assertTrue(graph.get("dead").isEmpty());
     }
 
     @Test
@@ -58,14 +73,38 @@ public class CallGraphRuleTest {
         File file = new File("src/test/resources/samples/java/CallGraph.java");
         var graph = analyze(file);
 
-        assertEquals(3, graph.size());
+        // main
+        assertTrue(graph.get("main").contains("linear"));
+        assertTrue(graph.get("main").contains("branch"));
+        assertTrue(graph.get("main").contains("recursive"));
+        assertTrue(graph.get("main").contains("mutualA"));
+        assertTrue(graph.get("main").contains("work"));
 
-        assertTrue(graph.containsKey("methodA"));
-        assertTrue(graph.containsKey("methodB"));
-        assertTrue(graph.containsKey("methodC"));
+        // linear
+        assertTrue(graph.get("linear").contains("leaf"));
 
-        assertTrue(graph.get("methodA").contains("methodB"));
-        assertTrue(graph.get("methodB").contains("methodC"));
-        assertTrue(graph.get("methodC").contains("println"));
+        // branching
+        assertTrue(graph.get("branch").contains("left"));
+        assertTrue(graph.get("branch").contains("right"));
+
+        // empty
+        assertTrue(graph.get("left").isEmpty());
+        assertTrue(graph.get("right").isEmpty());
+        assertTrue(graph.get("leaf").isEmpty());
+        assertTrue(graph.get("finish").isEmpty());
+
+        // recursion
+        assertTrue(graph.get("recursive").contains("recursive"));
+
+        // mutual recursion
+        assertTrue(graph.get("mutualA").contains("mutualB"));
+        assertTrue(graph.get("mutualB").contains("mutualA"));
+
+        // utility class
+        assertTrue(graph.get("work").contains("finish"));
+
+        // unused
+        assertTrue(graph.get("unused").contains("dead"));
+        assertTrue(graph.get("dead").isEmpty());
     }
 }

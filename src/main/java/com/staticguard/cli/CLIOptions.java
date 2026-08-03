@@ -6,12 +6,9 @@ import com.staticguard.common.ProjectContext;
 import com.staticguard.common.RuleContext;
 import com.staticguard.enums.ControlFlowRule;
 import com.staticguard.enums.Language;
-import com.staticguard.handlers.CHandler;
-import com.staticguard.handlers.JavaHandler;
 import com.staticguard.parser.LanguageParser;
 import com.staticguard.parser.ParserFactory;
 import com.staticguard.visitors.java.PrimitiveTypeVisitor;
-import org.antlr.v4.runtime.tree.ParseTree;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -136,6 +133,14 @@ public class CLIOptions implements Callable<Integer> {
             arity = "1"
     )
     protected PrimitiveTypeVisitor.Mode primitiveMode;
+
+    @CommandLine.Option(
+            names = {"--primitive-exceptions"},
+            description = "Allowed type exceptions for primitive mode (e.g. String[],Scanner)",
+            split = ","
+    )
+    protected List<String> primitiveExceptions = new ArrayList<>();
+
 
     @CommandLine.Option(
             names = "--forbid-control-flow",

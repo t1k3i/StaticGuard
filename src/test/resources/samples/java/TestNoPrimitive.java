@@ -19,7 +19,7 @@ public class TestNoPrimitive {
         }
     }
 
-    public boolean isPositive(int value) {
+    public static boolean isPositive(int value) {
         return value > 0;
     }
 }

@@ -51,7 +51,7 @@ class NamingRuleTest {
 
     @Test
     void javaTestNaming() throws Exception {
-        File file = new File("src/test/resources/samples/java/Naming.java");
+        File file = new File("src/test/resources/samples/java/badClassName.java");
         var context = new RuleContext(file);
 
         runNamingRuleAnalysis(file, context);

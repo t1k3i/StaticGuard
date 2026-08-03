@@ -48,7 +48,7 @@ public class CCallGraphVisitor extends CBaseVisitor<Void> {
             String calledFunction = ctx.primaryExpression().Identifier().getText();
 
             callGraph
-                    .computeIfAbsent(currentFunction, k -> new HashSet<>())
+                    .putIfAbsent(currentFunction, new HashSet<>())
                     .add(calledFunction);
         }
 

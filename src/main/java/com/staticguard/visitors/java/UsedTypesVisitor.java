@@ -1,12 +1,12 @@
 package com.staticguard.visitors.java;
 
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.CastExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.ThrowStmt;
 import com.github.javaparser.ast.type.ArrayType;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.type.Type;
+import com.github.javaparser.ast.type.TypeParameter;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.staticguard.common.RuleContext;
 import com.staticguard.enums.TypeContext;
@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class UsedTypesVisitor extends VoidVisitorAdapter<RuleContext> {
+
     private final Map<String, Set<TypeContext>> usedTypes;
 
     public UsedTypesVisitor(Map<String, Set<TypeContext>> usedTypes) {
@@ -26,6 +27,7 @@ public class UsedTypesVisitor extends VoidVisitorAdapter<RuleContext> {
         if (type == null) return;
 
         String name = type.toString();
+
         usedTypes
                 .computeIfAbsent(name, k -> new HashSet<>())
                 .add(context);
@@ -54,14 +56,28 @@ public class UsedTypesVisitor extends VoidVisitorAdapter<RuleContext> {
         super.visit(n, ctx);
     }
 
-    /* ===== Method return type ===== */
+    /* ===== Method return type + throws ===== */
     @Override
     public void visit(MethodDeclaration n, RuleContext ctx) {
         record(n.getType(), TypeContext.RETURN_TYPE);
+        n.getThrownExceptions()
+                .forEach(exception ->
+                        record(exception, TypeContext.THROWS)
+                );
         super.visit(n, ctx);
     }
 
-    /* ===== Object instantiation ===== */
+    /* ===== Constructors + throws ===== */
+    @Override
+    public void visit(ConstructorDeclaration n, RuleContext ctx) {
+        n.getThrownExceptions()
+                .forEach(exception ->
+                        record(exception, TypeContext.THROWS)
+                );
+        super.visit(n, ctx);
+    }
+
+    /* ===== Object creation ===== */
     @Override
     public void visit(ObjectCreationExpr n, RuleContext ctx) {
         record(n.getType(), TypeContext.INSTANTIATION);
@@ -78,9 +94,24 @@ public class UsedTypesVisitor extends VoidVisitorAdapter<RuleContext> {
     /* ===== Generic arguments ===== */
     @Override
     public void visit(ClassOrInterfaceType n, RuleContext ctx) {
-        n.getTypeArguments().ifPresent(args ->
-                args.forEach(t -> record(t, TypeContext.GENERIC_ARGUMENT))
-        );
+        n.getTypeArguments()
+                .ifPresent(args ->
+                        args.forEach(type ->
+                                record(type, TypeContext.GENERIC_ARGUMENT)
+                        )
+                );
+        super.visit(n, ctx);
+    }
+
+    /* ===== Method call generic types ===== */
+    @Override
+    public void visit(MethodCallExpr n, RuleContext ctx) {
+        n.getTypeArguments()
+                .ifPresent(args ->
+                        args.forEach(type ->
+                                record(type, TypeContext.METHOD_GENERIC_ARGUMENT)
+                        )
+                );
         super.visit(n, ctx);
     }
 
@@ -91,20 +122,61 @@ public class UsedTypesVisitor extends VoidVisitorAdapter<RuleContext> {
         super.visit(n, ctx);
     }
 
-    /* ===== Throws ===== */
+    /* ===== Throw new Exception ===== */
     @Override
     public void visit(ThrowStmt n, RuleContext ctx) {
-        n.getExpression().ifObjectCreationExpr(expr ->
-                record(expr.getType(), TypeContext.THROWS)
-        );
+        n.getExpression()
+                .ifObjectCreationExpr(expr ->
+                        record(expr.getType(), TypeContext.THROWS)
+                );
         super.visit(n, ctx);
     }
 
     /* ===== Inheritance ===== */
     @Override
     public void visit(ClassOrInterfaceDeclaration n, RuleContext ctx) {
-        n.getExtendedTypes().forEach(t -> record(t, TypeContext.EXTENDS));
-        n.getImplementedTypes().forEach(t -> record(t, TypeContext.IMPLEMENTS));
+        n.getExtendedTypes()
+                .forEach(type ->
+                        record(type, TypeContext.EXTENDS)
+                );
+        n.getImplementedTypes()
+                .forEach(type ->
+                        record(type, TypeContext.IMPLEMENTS)
+                );
+        super.visit(n, ctx);
+    }
+
+    /* ===== instanceof ===== */
+    @Override
+    public void visit(InstanceOfExpr n, RuleContext ctx) {
+        record(n.getType(), TypeContext.INSTANCEOF);
+        super.visit(n, ctx);
+    }
+
+    /* ===== Class literals ===== */
+    @Override
+    public void visit(ClassExpr n, RuleContext ctx) {
+        record(n.getType(), TypeContext.CLASS_LITERAL);
+        super.visit(n, ctx);
+    }
+
+    /* ===== Generic type parameters ===== */
+    @Override
+    public void visit(TypeParameter n, RuleContext ctx) {
+        n.getTypeBound()
+                .forEach(bound ->
+                        record(bound, TypeContext.GENERIC_BOUND)
+                );
+        super.visit(n, ctx);
+    }
+
+    /* ===== Records ===== */
+    @Override
+    public void visit(RecordDeclaration n, RuleContext ctx) {
+        n.getParameters()
+                .forEach(parameter ->
+                        record(parameter.getType(), TypeContext.RECORD_COMPONENT)
+                );
         super.visit(n, ctx);
     }
 }
