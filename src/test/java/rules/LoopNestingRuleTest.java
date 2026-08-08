@@ -13,9 +13,7 @@ import java.io.File;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class LoopNestingRuleTest {
-    private int analyze(String resourcePath) throws Exception {
-
-        File file = new File(resourcePath);
+    private int analyze(File file) throws Exception {
 
         LanguageParser<?> parser = ParserFactory.createParser(file);
         Object ast = parser.parse();
@@ -35,9 +33,15 @@ public class LoopNestingRuleTest {
         return rule.getMaxDepth();
     }
 
-   /* @Test
-    void shouldDetectFourLevels() throws Exception {
-        int depth = analyze("src/test/resources/samples/c/LoopNesting.c");
+    @Test
+    void testDetectFourLevelsC() throws Exception {
+        int depth = analyze( new File("src/test/resources/samples/c/LoopNesting.c") );
         assertEquals(4, depth);
-    }*/
+    }
+
+    @Test
+    void testDetectThreeLevelsJava() throws Exception {
+        int depth = analyze( new File("src/test/resources/samples/java/LoopNesting.java") );
+        assertEquals(3, depth);
+    }
 }

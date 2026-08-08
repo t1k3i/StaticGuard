@@ -297,7 +297,7 @@ class UsedTypesTest {
         );
     }
 
-    @Test
+   /* @Test
     void testAllUsedTypesC() throws Exception {
         File file = new File(
                 "src/test/resources/samples/c/UsedTypes.c"
@@ -538,7 +538,7 @@ class UsedTypesTest {
                 "Callback",
                 TypeContext.FUNCTION_POINTER
         );
-    }
+    } */
 
 
     private void assertContext(

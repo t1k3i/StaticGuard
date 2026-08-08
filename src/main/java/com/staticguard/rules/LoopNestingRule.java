@@ -7,16 +7,20 @@ import com.staticguard.visitors.java.LoopNestingVisitor;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 public class LoopNestingRule<T> implements RuleVisitor<T> {
-    private Integer maxDepth = 0;
+    private int maxDepth;
 
     @Override
     public void run(T astRoot, RuleContext context) {
         if (astRoot instanceof CompilationUnit root) {
-            root.accept(new LoopNestingVisitor(maxDepth), null);
+            LoopNestingVisitor visitor = new LoopNestingVisitor();
+            root.accept(visitor, null);
+            maxDepth = visitor.getMaxDepth();
         }
 
         if (astRoot instanceof ParseTree root) {
-            root.accept(new CLoopNestingVisitor(maxDepth));
+            CLoopNestingVisitor visitor = new CLoopNestingVisitor();
+            root.accept(visitor);
+            maxDepth = visitor.getMaxDepth();
         }
     }
 

@@ -12,4 +12,12 @@ public class LoopNesting {
             }
         }
     }
+
+    public void smallerNestedLoops() {
+        for (int i = 0; i < 10; i++) {
+            while (i > 0) {
+                System.out.println(i);
+            }
+        }
+    }
 }

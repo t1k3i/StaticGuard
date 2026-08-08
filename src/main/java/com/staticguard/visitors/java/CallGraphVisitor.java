@@ -7,35 +7,44 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import java.util.*;
 
 public class CallGraphVisitor extends VoidVisitorAdapter<Void> {
-    Map<String, Set<String>> callGraph;
+
+    private final Map<String, Set<String>> callGraph;
+
+    private final Deque<String> methodStack = new ArrayDeque<>();
 
     public CallGraphVisitor(Map<String, Set<String>> callGraph) {
         this.callGraph = callGraph;
     }
 
-    private String currentMethod = null;
-
     @Override
     public void visit(MethodDeclaration n, Void arg) {
-        currentMethod = n.getNameAsString();
-        callGraph.putIfAbsent(currentMethod, new HashSet<>());
+        String methodName = n.getNameAsString();
 
-        super.visit(n, arg);
+        callGraph.putIfAbsent(methodName, new HashSet<>());
 
-        currentMethod = null;
+        methodStack.push(methodName);
+
+        try {
+            super.visit(n, arg);
+        } finally {
+            methodStack.pop();
+        }
     }
 
     @Override
     public void visit(MethodCallExpr n, Void arg) {
+
+        if (!methodStack.isEmpty()) {
+            String currentMethod = methodStack.peek();
+
+            String calledMethod = n.getNameAsString();
+
+            callGraph
+                    .computeIfAbsent(currentMethod, k -> new HashSet<>())
+                    .add(calledMethod);
+        }
+
         super.visit(n, arg);
-
-        if (currentMethod == null)
-            return;
-
-        String calledMethod = n.getNameAsString();
-        callGraph
-                .computeIfAbsent(currentMethod, k -> new HashSet<>())
-                .add(calledMethod);
     }
 
     public Map<String, Set<String>> getCallGraph() {

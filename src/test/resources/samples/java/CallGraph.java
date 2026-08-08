@@ -6,6 +6,8 @@ public class CallGraph {
         recursive(2);
         mutualA(2);
         Util.work();
+
+        anonymousClassExample();
     }
 
     static void linear() {
@@ -48,5 +50,18 @@ public class CallGraph {
         }
 
         static void finish() {}
+    }
+
+    static void anonymousClassExample() {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                anonymousLeaf();
+            }
+
+            private void anonymousLeaf() {}
+        };
+
+        runnable.run();
     }
 }

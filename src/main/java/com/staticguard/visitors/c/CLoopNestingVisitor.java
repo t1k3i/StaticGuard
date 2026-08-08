@@ -5,12 +5,8 @@ import com.staticguard.CParser;
 
 public class CLoopNestingVisitor extends CBaseVisitor<Void> {
 
-    private int currentDepth = 0;
-    private Integer maxDepth;
-
-    public CLoopNestingVisitor(Integer maxDepth) {
-        this.maxDepth = maxDepth;
-    }
+    private int currentDepth;
+    private int maxDepth;
 
     public int getMaxDepth() {
         return maxDepth;

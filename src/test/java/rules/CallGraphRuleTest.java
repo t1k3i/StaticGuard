@@ -79,6 +79,7 @@ class CallGraphRuleTest {
         assertTrue(graph.get("main").contains("recursive"));
         assertTrue(graph.get("main").contains("mutualA"));
         assertTrue(graph.get("main").contains("work"));
+        assertTrue(graph.get("main").contains("anonymousClassExample"));
 
         // linear
         assertTrue(graph.get("linear").contains("leaf"));
@@ -106,5 +107,10 @@ class CallGraphRuleTest {
         // unused
         assertTrue(graph.get("unused").contains("dead"));
         assertTrue(graph.get("dead").isEmpty());
+
+        // anonymous class
+        assertTrue(graph.get("anonymousClassExample").contains("run"));
+        assertTrue(graph.get("run").contains("anonymousLeaf"));
+        assertTrue(graph.get("anonymousLeaf").isEmpty());
     }
 }
