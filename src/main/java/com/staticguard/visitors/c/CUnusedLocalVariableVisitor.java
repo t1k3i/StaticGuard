@@ -3,12 +3,14 @@ package com.staticguard.visitors.c;
 import com.staticguard.CBaseVisitor;
 import com.staticguard.CParser;
 import com.staticguard.common.RuleContext;
-import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class CUnusedLocalVariableVisitor extends CBaseVisitor<Void> {
     private final RuleContext context;
@@ -17,19 +19,30 @@ public class CUnusedLocalVariableVisitor extends CBaseVisitor<Void> {
         this.context = context;
     }
 
-    private final Map<String, Integer> declaredVars = new HashMap<>();
-    private final Set<String> usedVars = new HashSet<>();
-    private boolean inFunction = false;
+    private static class Variable {
+        final String name;
+        final int line;
+        boolean used;
 
-    /* ===== Function scope ===== */
+        Variable(String name, int line) {
+            this.name = name;
+            this.line = line;
+        }
+    }
+
+    private final List<Variable> declaredVars = new ArrayList<>();
+    private final Deque<Map<String, Variable>> scopes = new ArrayDeque<>();
+
+    private boolean inFunction = false;
 
     @Override
     public Void visitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
         declaredVars.clear();
-        usedVars.clear();
+        scopes.clear();
         inFunction = true;
 
-        // Parameters
+        scopes.push(new HashMap<>());
+
         var declarator = ctx.declarator();
         if (declarator != null) {
             collectParameters(declarator);
@@ -37,76 +50,143 @@ public class CUnusedLocalVariableVisitor extends CBaseVisitor<Void> {
 
         super.visitFunctionDefinition(ctx);
 
-        // Report unused locals
-        for (var entry : declaredVars.entrySet()) {
-            String var = entry.getKey();
-            int line = entry.getValue();
-
-            if (!usedVars.contains(var)) {
-                report(
-                        "Unused local variable: " + var,
-                        ctx
+        // Report unused locals and parameters.
+        for (Variable variable : declaredVars) {
+            if (!variable.used) {
+                context.report(
+                        "Unused local variable: " + variable.name,
+                        variable.line
                 );
             }
         }
 
+        scopes.clear();
         inFunction = false;
+
         return null;
     }
 
-    /* ===== Variable declarations ===== */
+    @Override
+    public Void visitCompoundStatement(CParser.CompoundStatementContext ctx) {
+        if (!inFunction) {
+            return super.visitCompoundStatement(ctx);
+        }
+
+        scopes.push(new HashMap<>());
+
+        super.visitCompoundStatement(ctx);
+
+        scopes.pop();
+
+        return null;
+    }
 
     @Override
     public Void visitDeclarator(CParser.DeclaratorContext ctx) {
-        if (!inFunction) return super.visitDeclarator(ctx);
+        if (!inFunction) {
+            return super.visitDeclarator(ctx);
+        }
 
         if (ctx.directDeclarator() != null
-                && ctx.directDeclarator().Identifier() != null) {
+                && ctx.directDeclarator().Identifier() != null
+                && !isStructOrUnionMember(ctx)) {
 
             String name = ctx.directDeclarator().Identifier().getText();
             int line = ctx.getStart().getLine();
 
-            declaredVars.putIfAbsent(name, line);
+            Map<String, Variable> currentScope = scopes.peek();
+
+            if (currentScope != null && !currentScope.containsKey(name)) {
+                Variable variable = new Variable(name, line);
+
+                currentScope.put(name, variable);
+                declaredVars.add(variable);
+            }
         }
 
         return super.visitDeclarator(ctx);
     }
 
-    /* ===== Variable usage ===== */
-
     @Override
     public Void visitPrimaryExpression(CParser.PrimaryExpressionContext ctx) {
-        if (!inFunction) return super.visitPrimaryExpression(ctx);
+        if (!inFunction) {
+            return super.visitPrimaryExpression(ctx);
+        }
 
         if (ctx.Identifier() != null) {
-            usedVars.add(ctx.Identifier().getText());
+            String name = ctx.Identifier().getText();
+
+            Variable variable = findVariable(name);
+
+            if (variable != null) {
+                variable.used = true;
+            }
         }
 
         return super.visitPrimaryExpression(ctx);
     }
 
-    /* ===== Helpers ===== */
-
     private void collectParameters(CParser.DeclaratorContext ctx) {
         var direct = ctx.directDeclarator();
-        if (direct == null) return;
+
+        if (direct == null) {
+            return;
+        }
 
         if (direct.parameterTypeList() != null) {
-            for (var param : direct.parameterTypeList().parameterList().parameterDeclaration()) {
+            for (var param : direct.parameterTypeList()
+                    .parameterList()
+                    .parameterDeclaration()) {
+
                 var decl = param.declarator();
-                if (decl != null && decl.directDeclarator() != null
+
+                if (decl != null
+                        && decl.directDeclarator() != null
                         && decl.directDeclarator().Identifier() != null) {
 
-                    String name = decl.directDeclarator().Identifier().getText();
+                    String name =
+                            decl.directDeclarator().Identifier().getText();
+
                     int line = decl.getStart().getLine();
-                    declaredVars.putIfAbsent(name, line);
+
+                    Map<String, Variable> functionScope = scopes.peek();
+
+                    if (functionScope != null
+                            && !functionScope.containsKey(name)) {
+
+                        Variable variable = new Variable(name, line);
+
+                        functionScope.put(name, variable);
+                        declaredVars.add(variable);
+                    }
                 }
             }
         }
     }
 
-    private void report(String message, ParserRuleContext ctx) {
-        int line = ctx != null && ctx.getStart() != null ? ctx.getStart().getLine() : -1;
-        context.report(message, line);
+    private Variable findVariable(String name) {
+        for (Map<String, Variable> scope : scopes) {
+            Variable variable = scope.get(name);
+
+            if (variable != null) {
+                return variable;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isStructOrUnionMember(CParser.DeclaratorContext ctx) {
+        ParseTree parent = ctx.getParent();
+
+        while (parent != null) {
+            if (parent instanceof CParser.StructOrUnionSpecifierContext) {
+                return true;
+            }
+
+            parent = parent.getParent();
+        }
+
+        return false;
     }
 }
