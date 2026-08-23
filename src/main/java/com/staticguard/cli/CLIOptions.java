@@ -166,7 +166,7 @@ public class CLIOptions implements Callable<Integer> {
                 ProjectContext projectContext = new ProjectContext();
                 List<File> sourceFiles = List.of(file);
                 handlePreProject(sourceFiles, projectContext);
-                handleSingleFile(file, config, projectContext);
+                handleSingleFile(file, config, projectContext, null);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -201,10 +201,23 @@ public class CLIOptions implements Callable<Integer> {
         };
     }
 
-    private void handleSingleFile(File file, CLIOptionsConfig config, ProjectContext projectContext) throws Exception {
-        LanguageParser<?> parser = ParserFactory.createParser(file);
+    private void handleSingleFile(
+            File file,
+            CLIOptionsConfig config,
+            ProjectContext projectContext,
+            File sourceRoot
+    ) throws Exception {
+
+        LanguageParser<?> parser =
+                ParserFactory.createParser(file, sourceRoot);
+
         var context = new RuleContext(file);
-        parser.handle(config, context, projectContext);
+
+        parser.handle(
+                config,
+                context,
+                projectContext
+        );
     }
 
     private void handleProject(File dir, CLIOptionsConfig config) throws Exception {
@@ -222,7 +235,7 @@ public class CLIOptions implements Callable<Integer> {
         handlePreProject(sourceFiles, projectContext);
 
         for (File f : sourceFiles) {
-            handleSingleFile(f, config, projectContext);
+            handleSingleFile(f, config, projectContext, dir);
         }
     }
 

@@ -12,4 +12,31 @@ public class LongMethod {
         int z=26; int aa=27; int bb=28; int cc=29; int dd=30;
         int ee=31;
     }
+
+    public void shortMethod() {
+        int x = 5;
+        int y = 10;
+    }
+
+    public int anotherLongMethod() {
+        int result = 0;
+        for (int i = 0; i < 100; i++) {
+            result += i;
+        }
+        for (int j = 0; j < 100; j++) {
+            result -= j;
+        }
+        for (int k = 0; k < 50; k++) {
+            result *= 2;
+        }
+        for (int l = 0; l < 25; l++) {
+            result /= 2;
+        }
+        return result;
+    }
+
+    public void normalMethod() {
+        String message = "Hello";
+        System.out.println(message);
+    }
 }

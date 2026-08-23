@@ -9,21 +9,17 @@ import com.staticguard.common.RuleContext;
 import java.util.regex.Pattern;
 
 public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
-    private static final Pattern CAMEL_CASE = Pattern.compile("^[a-z][a-zA-Z0-9]*$");
-    private static final Pattern PASCAL_CASE = Pattern.compile("^[A-Z][a-zA-Z0-9]*$");
-    private static final Pattern UPPER_SNAKE_CASE = Pattern.compile("^[A-Z0-9_]+$");
-    private static final Pattern TYPE_PARAM = Pattern.compile("^[A-Z]$");
-
-    private final boolean addComments;
+    private static final Pattern CAMEL_CASE =
+            Pattern.compile("^[a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$");
+    private static final Pattern PASCAL_CASE =
+            Pattern.compile("^[A-Z][a-z0-9]*(?:[A-Z][a-z0-9]*)*$");
+    private static final Pattern UPPER_SNAKE_CASE =
+            Pattern.compile("^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$");
+    private static final Pattern TYPE_PARAM =
+            Pattern.compile("^[A-Z]$");
 
     public JavaNamingVisitor() {
         super();
-        this.addComments = false;
-    }
-
-    public JavaNamingVisitor(boolean addComments) {
-        super();
-        this.addComments = addComments;
     }
 
     @Override
@@ -32,8 +28,8 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
 
         String name = n.getNameAsString();
         if (!PASCAL_CASE.matcher(name).matches())
-            reportAndComment(n, arg,
-                    "Class/Interface name should be UpperCamelCase: " + name);
+            report(n, arg,
+                    "Class/Interface name should be PascalCase: " + name);
     }
 
     @Override
@@ -42,8 +38,8 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
 
         String name = n.getNameAsString();
         if (!PASCAL_CASE.matcher(name).matches())
-            reportAndComment(n, arg,
-                    "Enum name should be UpperCamelCase: " + name);
+            report(n, arg,
+                    "Enum name should be PascalCase: " + name);
     }
 
     @Override
@@ -52,7 +48,7 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
 
         String name = n.getNameAsString();
         if (!UPPER_SNAKE_CASE.matcher(name).matches())
-            reportAndComment(n, arg,
+            report(n, arg,
                     "Enum constant should be UPPER_SNAKE_CASE: " + name);
     }
 
@@ -62,8 +58,8 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
 
         String name = n.getNameAsString();
         if (!CAMEL_CASE.matcher(name).matches())
-            reportAndComment(n, arg,
-                    "Method name should be lowerCamelCase: " + name);
+            report(n, arg,
+                    "Method name should be camelCase: " + name);
     }
 
     @Override
@@ -77,12 +73,12 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
 
             if (isConstant) {
                 if (!UPPER_SNAKE_CASE.matcher(name).matches())
-                    reportAndComment(n, arg,
+                    report(n, arg,
                             "Constant name should be UPPER_SNAKE_CASE: " + name);
             } else {
                 if (!CAMEL_CASE.matcher(name).matches())
-                    reportAndComment(n, arg,
-                            "Variable name should be lowerCamelCase: " + name);
+                    report(n, arg,
+                            "Field name should be camelCase: " + name);
             }
         }
     }
@@ -94,8 +90,8 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
         if (!(n.getParentNode().orElse(null) instanceof FieldDeclaration)) {
             String name = n.getNameAsString();
             if (!CAMEL_CASE.matcher(name).matches())
-                reportAndComment(n, arg,
-                        "Local variable should be lowerCamelCase: " + name);
+                report(n, arg,
+                        "Variable name should be camelCase: " + name);
         }
     }
 
@@ -105,7 +101,7 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
 
         String name = n.getNameAsString();
         if (!CAMEL_CASE.matcher(name).matches())
-            reportAndComment(n, arg, "Parameter name should be lowerCamelCase: " + name);
+            report(n, arg, "Parameter name should be camelCase: " + name);
     }
 
     @Override
@@ -114,15 +110,11 @@ public class JavaNamingVisitor extends VoidVisitorAdapter<RuleContext> {
 
         String name = n.getNameAsString();
         if (!TYPE_PARAM.matcher(name).matches())
-            reportAndComment(n, arg,
+            report(n, arg,
                     "Type parameter should be a single uppercase letter: " + name);
     }
 
-    private void reportAndComment(Node node, RuleContext arg, String message) {
+    private void report(Node node, RuleContext arg, String message) {
         arg.report(message, node.getBegin().map(p -> p.line).orElse(-1));
-
-        if (addComments) {
-            node.getParentNode().ifPresent(parent -> parent.setBlockComment(message));
-        }
     }
 }
