@@ -33,12 +33,6 @@ public class PrimitiveTypeVisitor extends VoidVisitorAdapter<RuleContext> {
     }
 
     @Override
-    public void visit(FieldDeclaration n, RuleContext ctx) {
-        super.visit(n, ctx);
-        checkType(n.getElementType(), n, ctx);
-    }
-
-    @Override
     public void visit(VariableDeclarator n, RuleContext ctx) {
         super.visit(n, ctx);
         checkType(n.getType(), n, ctx);

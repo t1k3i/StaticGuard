@@ -1,91 +1,170 @@
 package rules;
 
-import com.staticguard.cli.CLIOptionsConfig;
-import com.staticguard.common.ProjectContext;
+import com.github.javaparser.ast.CompilationUnit;
+import com.staticguard.analyzers.GenericAnalyzer;
+import com.staticguard.analyzers.VisitorManager;
+import com.staticguard.common.Issue;
 import com.staticguard.common.RuleContext;
+import com.staticguard.parser.LanguageParser;
 import com.staticguard.parser.ParserFactory;
+import com.staticguard.rules.java.PrimitiveTypeRule;
 import com.staticguard.visitors.java.PrimitiveTypeVisitor;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static helpers.RuleTestHelper.assertIssue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PrimitiveTypeRuleTest {
 
-    private RuleContext runAnalysis(File file, CLIOptionsConfig config) throws Exception {
-        var parser = ParserFactory.createParser(file);
-        var context = new RuleContext(file);
-        var projectContext = new ProjectContext();
-        parser.handle(config, context, projectContext);
-        return context;
+    private List<Issue> analyze(
+            File file,
+            PrimitiveTypeVisitor.Mode mode,
+            Set<String> exceptions
+    ) throws Exception {
+        LanguageParser<?> parser = ParserFactory.createParser(file);
+        CompilationUnit ast = (CompilationUnit) parser.parse();
+
+        RuleContext context = new RuleContext(file);
+
+        PrimitiveTypeRule<CompilationUnit> rule =
+                (exceptions == null || exceptions.isEmpty())
+                        ? new PrimitiveTypeRule<>(mode)
+                        : new PrimitiveTypeRule<>(mode, exceptions);
+
+        GenericAnalyzer<CompilationUnit> analyzer =
+                new GenericAnalyzer<>(context, rule);
+
+        VisitorManager<CompilationUnit> manager =
+                new VisitorManager<>(ast);
+
+        manager.addVisitor(analyzer);
+        manager.runVisitors();
+
+        return context.getIssues();
     }
 
     @Test
     void testOnlyPrimitiveModeWithoutExceptions() throws Exception {
-        File file = new File("src/test/resources/samples/java/PrimitiveSample.java");
+        File file = new File(
+                "src/test/resources/samples/java/PrimitiveSample.java"
+        );
 
-        CLIOptionsConfig config = CLIOptionsConfig.builder()
-                .primitiveMode(PrimitiveTypeVisitor.Mode.ONLY_PRIMITIVE)
-                .build();
+        var issues = analyze(
+                file,
+                PrimitiveTypeVisitor.Mode.ONLY_PRIMITIVE,
+                null
+        );
 
-        RuleContext context = runAnalysis(file, config);
-        var issues = context.getIssues();
+        assertEquals(
+                20,
+                issues.size(),
+                "Should detect all non-primitive type usages in ONLY_PRIMITIVE mode"
+        );
 
-        assertFalse(issues.isEmpty(), "Should report violations when no exceptions are configured");
-
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("String[]")),
-                "Should report String[] parameter");
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("Scanner")),
-                "Should report Scanner variable/instantiation");
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("String")),
-                "Should report String variable");
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("Boolean")),
-                "Should report Boolean variable");
+        assertIssue(issues, 13, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 14, "Only primitive types are allowed, found: Double");
+        assertIssue(issues, 15, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 16, "Only primitive types are allowed, found: Scanner");
+        assertIssue(issues, 16, "Only primitive types are allowed, found: Scanner");
+        assertIssue(issues, 17, "Only primitive types are allowed, found: int[]");
+        assertIssue(issues, 25, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 29, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 43, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 47, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 60, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 61, "Only primitive types are allowed, found: Double");
+        assertIssue(issues, 62, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 63, "Only primitive types are allowed, found: Scanner");
+        assertIssue(issues, 63, "Only primitive types are allowed, found: Scanner");
+        assertIssue(issues, 79, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 81, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 82, "Only primitive types are allowed, found: Scanner");
+        assertIssue(issues, 82, "Only primitive types are allowed, found: Scanner");
+        assertIssue(issues, 76, "Only primitive types are allowed, found: String[]");
     }
 
     @Test
     void testOnlyPrimitiveModeWithExceptions() throws Exception {
-        File file = new File("src/test/resources/samples/java/PrimitiveSample.java");
+        File file = new File(
+                "src/test/resources/samples/java/PrimitiveSample.java"
+        );
 
-        CLIOptionsConfig config = CLIOptionsConfig.builder()
-                .primitiveMode(PrimitiveTypeVisitor.Mode.ONLY_PRIMITIVE)
-                .primitiveExceptions(Set.of("String[]", "Scanner"))
-                .build();
+        var issues = analyze(
+                file,
+                PrimitiveTypeVisitor.Mode.ONLY_PRIMITIVE,
+                Set.of("String[]", "Scanner")
+        );
 
-        RuleContext context = runAnalysis(file, config);
-        var issues = context.getIssues();
+        assertEquals(13, issues.size(),
+                "Should detect all non-primitive type usages in ONLY_PRIMITIVE mode");
 
-        assertFalse(issues.stream().anyMatch(i -> i.getMessage().contains("found: String[]")),
-                "String[] should be allowed as exception");
-        assertFalse(issues.stream().anyMatch(i -> i.getMessage().contains("found: Scanner")),
-                "Scanner should be allowed as exception");
+        assertIssue(issues, 13, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 14, "Only primitive types are allowed, found: Double");
+        assertIssue(issues, 15, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 17, "Only primitive types are allowed, found: int[]");
+        assertIssue(issues, 25, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 29, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 43, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 47, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 60, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 61, "Only primitive types are allowed, found: Double");
+        assertIssue(issues, 62, "Only primitive types are allowed, found: String");
+        assertIssue(issues, 79, "Only primitive types are allowed, found: Integer");
+        assertIssue(issues, 81, "Only primitive types are allowed, found: String");
+    }
 
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("found: String")),
-                "String should still be flagged as violation");
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("Boolean")),
-                "Boolean should still be flagged as violation");
+    @Test
+    void testNoPrimitiveModeWithoutExceptions() throws Exception {
+        File file = new File(
+                "src/test/resources/samples/java/PrimitiveSample.java"
+        );
+
+        var issues = analyze(
+                file,
+                PrimitiveTypeVisitor.Mode.NO_PRIMITIVE,
+                null
+        );
+
+        assertEquals(11, issues.size(),
+                "Should detect all primitive type usages in NO_PRIMITIVE mode");
+
+        assertIssue(issues, 8, "Primitive types are not allowed, found: int");
+        assertIssue(issues, 9, "Primitive types are not allowed, found: double");
+        assertIssue(issues, 10, "Primitive types are not allowed, found: boolean");
+        assertIssue(issues, 20, "Primitive types are not allowed, found: int");
+        assertIssue(issues, 34, "Primitive types are not allowed, found: int");
+        assertIssue(issues, 38, "Primitive types are not allowed, found: double");
+        assertIssue(issues, 54, "Primitive types are not allowed, found: int");
+        assertIssue(issues, 55, "Primitive types are not allowed, found: double");
+        assertIssue(issues, 56, "Primitive types are not allowed, found: boolean");
+        assertIssue(issues, 57, "Primitive types are not allowed, found: char");
+        assertIssue(issues, 78, "Primitive types are not allowed, found: int");
     }
 
     @Test
     void testNoPrimitiveModeWithExceptions() throws Exception {
-        File file = new File("src/test/resources/samples/java/PrimitiveSample.java");
+        File file = new File(
+                "src/test/resources/samples/java/PrimitiveSample.java"
+        );
 
-        CLIOptionsConfig config = CLIOptionsConfig.builder()
-                .primitiveMode(PrimitiveTypeVisitor.Mode.NO_PRIMITIVE)
-                .primitiveExceptions(Set.of("int"))
-                .build();
+        var issues = analyze(
+                file,
+                PrimitiveTypeVisitor.Mode.NO_PRIMITIVE,
+                Set.of("int")
+        );
 
-        RuleContext context = runAnalysis(file, config);
-        var issues = context.getIssues();
+        assertEquals(6, issues.size(),
+                "Should detect all non-exempt primitive type usages in NO_PRIMITIVE mode");
 
-        assertFalse(issues.stream().anyMatch(i -> i.getMessage().contains("found: int")),
-                "int should be allowed in NO_PRIMITIVE mode when in exceptions");
-
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("found: double")),
-                "double should be flagged as primitive violation");
-        assertTrue(issues.stream().anyMatch(i -> i.getMessage().contains("found: boolean")),
-                "boolean should be flagged as primitive violation");
+        assertIssue(issues, 9, "Primitive types are not allowed, found: double");
+        assertIssue(issues, 10, "Primitive types are not allowed, found: boolean");
+        assertIssue(issues, 38, "Primitive types are not allowed, found: double");
+        assertIssue(issues, 55, "Primitive types are not allowed, found: double");
+        assertIssue(issues, 56, "Primitive types are not allowed, found: boolean");
+        assertIssue(issues, 57, "Primitive types are not allowed, found: char");
     }
 }

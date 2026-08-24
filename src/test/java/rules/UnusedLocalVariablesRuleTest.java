@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.List;
 
+import static helpers.RuleTestHelper.assertIssue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UnusedLocalVariablesRuleTest {
 
@@ -31,13 +31,6 @@ class UnusedLocalVariablesRuleTest {
         manager.runVisitors();
 
         return context.getIssues();
-    }
-
-    private static void assertIssue(List<Issue> issues, int line, String message) {
-        assertTrue(
-                issues.stream().anyMatch(i -> i.getLine() == line && i.getMessage().equals(message)),
-                "Expected issue at line " + line + " with message '" + message + "' but it was missing."
-        );
     }
 
     @Test

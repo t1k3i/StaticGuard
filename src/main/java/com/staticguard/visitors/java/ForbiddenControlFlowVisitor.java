@@ -1,5 +1,6 @@
 package com.staticguard.visitors.java;
 
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.InstanceOfExpr;
 import com.github.javaparser.ast.stmt.BreakStmt;
 import com.github.javaparser.ast.stmt.ContinueStmt;
@@ -20,10 +21,7 @@ public class ForbiddenControlFlowVisitor extends VoidVisitorAdapter<RuleContext>
     @Override
     public void visit(BreakStmt n, RuleContext ctx) {
         if (forbiddenRules.contains(ControlFlowRule.BREAK)) {
-            ctx.report(
-                    "Forbidden control flow statement: break",
-                    n.getBegin().map(p -> p.line).orElse(-1)
-            );
+            report(ctx, "Forbidden control flow statement: break", n);
         }
         super.visit(n, ctx);
     }
@@ -31,10 +29,7 @@ public class ForbiddenControlFlowVisitor extends VoidVisitorAdapter<RuleContext>
     @Override
     public void visit(ContinueStmt n, RuleContext ctx) {
         if (forbiddenRules.contains(ControlFlowRule.CONTINUE)) {
-            ctx.report(
-                    "Forbidden control flow statement: continue",
-                    n.getBegin().map(p -> p.line).orElse(-1)
-            );
+            report(ctx, "Forbidden control flow statement: continue", n);
         }
         super.visit(n, ctx);
     }
@@ -42,10 +37,7 @@ public class ForbiddenControlFlowVisitor extends VoidVisitorAdapter<RuleContext>
     @Override
     public void visit(ReturnStmt n, RuleContext ctx) {
         if (forbiddenRules.contains(ControlFlowRule.RETURN)) {
-            ctx.report(
-                    "Forbidden control flow statement: return",
-                    n.getBegin().map(p -> p.line).orElse(-1)
-            );
+            report(ctx, "Forbidden control flow statement: return", n);
         }
         super.visit(n, ctx);
     }
@@ -53,11 +45,15 @@ public class ForbiddenControlFlowVisitor extends VoidVisitorAdapter<RuleContext>
     @Override
     public void visit(InstanceOfExpr n, RuleContext ctx) {
         if (forbiddenRules.contains(ControlFlowRule.INSTANCEOF)) {
-            ctx.report(
-                    "Forbidden language construct: instanceof",
-                    n.getBegin().map(p -> p.line).orElse(-1)
-            );
+            report(ctx, "Forbidden language construct: instanceof", n);
         }
         super.visit(n, ctx);
+    }
+
+    private void report(RuleContext ctx, String message, Node node) {
+        ctx.report(
+                message,
+                node.getBegin().map(p -> p.line).orElse(-1)
+        );
     }
 }
