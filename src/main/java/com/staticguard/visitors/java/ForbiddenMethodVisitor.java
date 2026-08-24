@@ -2,6 +2,7 @@ package com.staticguard.visitors.java;
 
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.staticguard.common.RuleContext;
 
 import java.util.Set;
@@ -10,7 +11,6 @@ public class ForbiddenMethodVisitor extends VoidVisitorAdapter<RuleContext> {
     private final Set<String> forbiddenCalls;
 
     public ForbiddenMethodVisitor(final Set<String> forbiddenCalls) {
-        super();
         this.forbiddenCalls = forbiddenCalls;
     }
 
@@ -18,20 +18,21 @@ public class ForbiddenMethodVisitor extends VoidVisitorAdapter<RuleContext> {
     public void visit(MethodCallExpr n, RuleContext ctx) {
         super.visit(n, ctx);
 
-        String call = resolveCallName(n);
+        try {
+            ResolvedMethodDeclaration method = n.resolve();
 
-        if (forbiddenCalls.contains(call)) {
-            ctx.report(
-                    "Forbidden method call: " + call,
-                    n.getBegin().map(p -> p.line).orElse(-1)
-            );
-        }
-    }
+            String declaringType = method.declaringType().getQualifiedName();
+            String methodName = method.getName();
+            String qualifiedCall = declaringType + "." + methodName;
 
-    private String resolveCallName(MethodCallExpr n) {
-        if (n.getScope().isPresent()) {
-            return n.getScope().get().toString() + "." + n.getNameAsString();
+            if (forbiddenCalls.contains(methodName)
+                    || forbiddenCalls.contains(qualifiedCall)) {
+                ctx.report(
+                        "Forbidden method call: " + qualifiedCall,
+                        n.getBegin().map(p -> p.line).orElse(-1)
+                );
+            }
+        } catch (RuntimeException ignored) {
         }
-        return n.getNameAsString();
     }
 }
