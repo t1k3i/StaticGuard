@@ -1,17 +1,26 @@
-// DeniedCalls.c
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-void allowed() {}
-
-void forbidden_calls() {
-    printf("This should be flagged\n");
-    system("ls");
-    allowed();
+void helper() {
+    printf("helper");
 }
 
-int main() {
-    forbidden_calls();
-    return 0;
+void test() {
+    printf("test");
+    strlen("hello");
+    helper();
+}
+
+void other() {
+    printf("other");
+    malloc(10);
+}
+
+void recursive() {
+    recursive();
+}
+
+void main() {
+    printf("main");
 }

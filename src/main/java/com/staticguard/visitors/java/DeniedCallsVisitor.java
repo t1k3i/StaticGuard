@@ -3,6 +3,7 @@ package com.staticguard.visitors.java;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.staticguard.common.RuleContext;
 
 import java.util.Map;
@@ -31,14 +32,31 @@ public class DeniedCallsVisitor extends VoidVisitorAdapter<RuleContext> {
 
         if (currentMethod == null) return;
 
-        String call = n.getNameAsString();
-
         Set<String> forbidden = deniedCalls.get(currentMethod);
-        if (forbidden != null && forbidden.contains(call)) {
-            ctx.report(
-                    "Method '" + currentMethod + "' is not allowed to call '" + call + "'",
-                    n.getBegin().map(p -> p.line).orElse(-1)
-            );
+
+        if (forbidden == null) return;
+
+        try {
+            ResolvedMethodDeclaration method = n.resolve();
+
+            String declaringType = method.declaringType().getQualifiedName();
+            String methodName = method.getName();
+            String qualifiedCall = declaringType + "." + methodName;
+
+            if (forbidden.contains(methodName)
+                    || forbidden.contains(qualifiedCall)) {
+
+                String reportedCall = forbidden.contains(qualifiedCall)
+                        ? qualifiedCall
+                        : methodName;
+
+                ctx.report(
+                        "Method '" + currentMethod +
+                                "' is not allowed to call '" + reportedCall + "'",
+                        n.getBegin().map(p -> p.line).orElse(-1)
+                );
+            }
+        } catch (RuntimeException ignored) {
         }
     }
 }
