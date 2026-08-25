@@ -7,8 +7,6 @@ import com.staticguard.cli.CLIOptionsConfig;
 import com.staticguard.rules.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-import java.io.File;
-
 public class CHandler implements LanguageHandler<ParseTree> {
     @Override
     public void handle(ParseTree root, CLIOptionsConfig config, RuleContext context, ProjectContext projectContext) {
@@ -29,10 +27,6 @@ public class CHandler implements LanguageHandler<ParseTree> {
         if (runInfo || config.isCallGraph()) {
             var callGraphRule = new CallGraphRule<ParseTree>();
             manager.addVisitor(new CallGraphAnalyzer<>(callGraphRule));
-        }
-
-        if (runInfo || config.isClassDependencies()) {
-            warnIf(config.isClassDependencies(), "--class-deps");
         }
 
         if (runInfo || config.isUsedTypes()) {
@@ -73,10 +67,6 @@ public class CHandler implements LanguageHandler<ParseTree> {
             manager.addVisitor(new GenericAnalyzer<>(context, unusedLocalVariablesRule));
         }
 
-        if (runGood || config.isUnusedImports()) {
-            warnIf(config.isUnusedImports(), "--unused-imports");
-        }
-
         /* =========================
            FORBIDDEN RULES
            ========================= */
@@ -108,8 +98,6 @@ public class CHandler implements LanguageHandler<ParseTree> {
             );
         }
 
-        warnIf(config.getPrimitiveMode() != null, "--primitive-mode");
-
         if (!config.getForbiddenControlFlow().isEmpty()) {
             var forbiddenControlFlowRule = new ForbiddenControlFlowRule<ParseTree>(config.getForbiddenControlFlow());
             manager.addVisitor(
@@ -120,20 +108,10 @@ public class CHandler implements LanguageHandler<ParseTree> {
             );
         }
 
-        warnIf(config.isForbidFieldAccess(), "--forbid-field-access");
-
         /* =========================
            RUN EVERYTHING
            ========================= */
 
         manager.runVisitors();
-    }
-
-    private void warnIf(boolean condition, String flag) {
-        if (condition) {
-            System.err.println(
-                    "[WARN] Flag " + flag + " is not supported for C — skipping"
-            );
-        }
     }
 }

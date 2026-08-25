@@ -32,9 +32,6 @@ public class CLIOptions implements Callable<Integer> {
     )
     protected String language;
 
-    @CommandLine.Option(names = "--all", description = "Run all visitors")
-    protected boolean runAll;
-
     @CommandLine.Option(names = "--dev", description = "Run just one test visitor you are developing")
     protected boolean development;
 

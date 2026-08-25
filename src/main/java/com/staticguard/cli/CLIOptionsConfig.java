@@ -8,7 +8,6 @@ import java.util.*;
 public class CLIOptionsConfig {
     /* GENERAL */
     private final String language;
-    private final boolean runAll;
     private final boolean development;
 
     /* INFO */
@@ -36,7 +35,6 @@ public class CLIOptionsConfig {
 
     public CLIOptionsConfig(
             String language,
-            boolean runAll,
             boolean development,
 
             boolean runInfo,
@@ -62,7 +60,6 @@ public class CLIOptionsConfig {
             Set<String> primitiveExceptions
     ) {
         this.language = language;
-        this.runAll = runAll;
         this.development = development;
 
         this.runInfo = runInfo;
@@ -88,12 +85,13 @@ public class CLIOptionsConfig {
 
         this.primitiveMode = primitiveMode;
         this.primitiveExceptions = primitiveExceptions != null ? primitiveExceptions : Collections.emptySet();
+
+        this.printWarnings();
     }
 
     public static CLIOptionsConfig fromCLI(CLIOptions cli) {
         return new CLIOptionsConfig(
                 cli.language,
-                cli.runAll,
                 cli.development,
                 cli.runInfo,
                 cli.callGraph,
@@ -114,37 +112,6 @@ public class CLIOptionsConfig {
                 cli.primitiveMode,
                 new HashSet<>(cli.primitiveExceptions)
         );
-    }
-
-    private CLIOptionsConfig(Builder builder) {
-        this.language = builder.language;
-        this.runAll = builder.runAll;
-        this.development = builder.development;
-
-        this.runInfo = builder.runInfo;
-        this.callGraph = builder.callGraph;
-        this.classDependencies = builder.classDependencies;
-        this.usedTypes = builder.usedTypes;
-        this.loopNesting = builder.loopNesting;
-
-        this.runGoodPractices = builder.runGoodPractices;
-        this.unusedImports = builder.unusedImports;
-        this.unusedLocals = builder.unusedLocals;
-        this.naming = builder.naming;
-        this.longMethodsMaxLines = builder.longMethodsMaxLines;
-
-        this.forbiddenMethods = builder.forbiddenMethods;
-        this.forbiddenTypes = builder.forbiddenTypes;
-        this.forbiddenCalls = builder.forbiddenCalls;
-        this.forbiddenControlFlow = builder.forbiddenControlFlow;
-        this.forbidFieldAccess = builder.forbidFieldAccess;
-
-        this.primitiveMode = builder.primitiveMode;
-        this.primitiveExceptions = builder.primitiveExceptions != null ? builder.primitiveExceptions : Collections.emptySet();
-    }
-
-    public static Builder builder() {
-        return new Builder();
     }
 
     private static Map<String, Set<String>> buildForbiddenCalls(
@@ -168,10 +135,6 @@ public class CLIOptionsConfig {
     /* GENERAL */
     public String getLanguage() {
         return language;
-    }
-
-    public boolean isRunAll() {
-        return runAll;
     }
 
     public boolean isDevelopment() {
@@ -249,75 +212,18 @@ public class CLIOptionsConfig {
         return primitiveExceptions;
     }
 
-    public static class Builder {
-
-        /* GENERAL */
-        private String language;
-        private boolean runAll;
-        private boolean development;
-
-        /* INFO */
-        private boolean runInfo;
-        private boolean callGraph;
-        private boolean classDependencies;
-        private boolean usedTypes;
-        private boolean loopNesting;
-
-        /* GOOD PRACTICES */
-        private boolean runGoodPractices;
-        private boolean unusedImports;
-        private boolean unusedLocals;
-        private boolean naming;
-        private Integer longMethodsMaxLines;
-
-        /* FORBIDDEN */
-        private Set<String> forbiddenMethods = new HashSet<>();
-        private Set<String> forbiddenTypes = new HashSet<>();
-        private Map<String, Set<String>> forbiddenCalls = new HashMap<>();
-        private Set<ControlFlowRule> forbiddenControlFlow = new HashSet<>();
-        private boolean forbidFieldAccess;
-        private PrimitiveTypeVisitor.Mode primitiveMode;
-        private Set<String> primitiveExceptions = new HashSet<>();
-
-        private Builder() {}
-
-        public CLIOptionsConfig build() {
-            return new CLIOptionsConfig(this);
+    private void printWarnings() {
+        if (classDependencies) {
+            System.err.println("[WARN] Flag --class-deps is not supported for C — skipping");
         }
-
-        public Builder primitiveMode(PrimitiveTypeVisitor.Mode mode) {
-            this.primitiveMode = mode;
-            return this;
+        if (unusedImports) {
+            System.err.println("[WARN] Flag --unused-imports is not supported for C — skipping");
         }
-
-        public Builder primitiveExceptions(Set<String> exceptions) {
-            this.primitiveExceptions = exceptions;
-            return this;
+        if (primitiveMode != null) {
+            System.err.println("[WARN] Flag --primitive-mode is not supported for C — skipping");
         }
-
-        public Builder usedTypes(boolean value) {
-            this.usedTypes = value;
-            return this;
-        }
-
-        public Builder language(String language) {
-            this.language = language;
-            return this;
-        }
-
-        public Builder runGoodPractices(boolean value) {
-            this.runGoodPractices = value;
-            return this;
-        }
-
-        public Builder naming(boolean value) {
-            this.naming = value;
-            return this;
-        }
-
-        public Builder development(boolean value) {
-            this.development = value;
-            return this;
+        if (forbidFieldAccess) {
+            System.err.println("[WARN] Flag --forbid-field-access is not supported for C — skipping");
         }
     }
 }
