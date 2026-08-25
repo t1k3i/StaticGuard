@@ -1,13 +1,18 @@
 package com.staticguard.cli;
 
 import com.staticguard.enums.ControlFlowRule;
+import com.staticguard.enums.Language;
 import com.staticguard.visitors.java.PrimitiveTypeVisitor;
 
+import java.io.File;
 import java.util.*;
 
 public class CLIOptionsConfig {
+    File file;
+
     /* GENERAL */
     private final String language;
+    private final Language lang;
     private final boolean development;
 
     /* INFO */
@@ -34,6 +39,7 @@ public class CLIOptionsConfig {
     private final Set<String> primitiveExceptions;
 
     public CLIOptionsConfig(
+            File file,
             String language,
             boolean development,
 
@@ -59,6 +65,7 @@ public class CLIOptionsConfig {
             PrimitiveTypeVisitor.Mode primitiveMode,
             Set<String> primitiveExceptions
     ) {
+        this.file = file;
         this.language = language;
         this.development = development;
 
@@ -86,11 +93,15 @@ public class CLIOptionsConfig {
         this.primitiveMode = primitiveMode;
         this.primitiveExceptions = primitiveExceptions != null ? primitiveExceptions : Collections.emptySet();
 
-        this.printWarnings();
+        validateFile();
+
+        this.lang = calculateLang();
+        printWarningsIfC();
     }
 
     public static CLIOptionsConfig fromCLI(CLIOptions cli) {
         return new CLIOptionsConfig(
+                cli.file,
                 cli.language,
                 cli.development,
                 cli.runInfo,
@@ -135,6 +146,10 @@ public class CLIOptionsConfig {
     /* GENERAL */
     public String getLanguage() {
         return language;
+    }
+
+    public Language getLang() {
+        return lang;
     }
 
     public boolean isDevelopment() {
@@ -212,7 +227,47 @@ public class CLIOptionsConfig {
         return primitiveExceptions;
     }
 
-    private void printWarnings() {
+    private void validateFile() {
+        if (file == null) {
+            throw new IllegalArgumentException("File cannot be null");
+        }
+
+        if (!file.exists())
+            throw new IllegalArgumentException("File does not exist: " + file.getAbsolutePath());
+    }
+
+    private Language calculateLang() {
+        if (file.isDirectory()) {
+            if (language == null) {
+                throw new IllegalArgumentException(
+                        "Language must be specified for directories"
+                );
+            }
+            return switch (language.toLowerCase()) {
+                case "java" -> Language.JAVA;
+                case "c" -> Language.C;
+                default -> throw new IllegalArgumentException("Unknown language: " + language);
+            };
+        }
+
+        String name = file.getName();
+        int idx = name.lastIndexOf('.');
+        String extension = idx == -1 ? "" : name.substring(idx + 1).toLowerCase();
+
+        return switch (extension) {
+            case "java" -> Language.JAVA;
+            case "c", "h" -> Language.C;
+            default -> throw new IllegalArgumentException(
+                    "Unsupported file type: " + extension
+            );
+        };
+    }
+
+    private void printWarningsIfC() {
+        if (lang != Language.C) {
+            return;
+        }
+
         if (classDependencies) {
             System.err.println("[WARN] Flag --class-deps is not supported for C — skipping");
         }

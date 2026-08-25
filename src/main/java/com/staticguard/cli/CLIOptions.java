@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
 )
 public class CLIOptions implements Callable<Integer> {
     @CommandLine.Parameters(index = "0", description = "The source file to analyze")
-    private File file;
+    protected File file;
 
     @CommandLine.Option(
             names = {"--lang"},
@@ -63,7 +63,7 @@ public class CLIOptions implements Callable<Integer> {
 
     @CommandLine.Option(
             names = "--loop-nesting",
-            description = "Detect deeply nested loops"
+            description = "Detect the max depth of nested loops"
     )
     protected boolean loopNesting;
 
@@ -89,7 +89,7 @@ public class CLIOptions implements Callable<Integer> {
 
     @CommandLine.Option(
             names = "--naming",
-            description = "Check Java naming conventions"
+            description = "Check naming conventions"
     )
     protected boolean naming;
 
@@ -98,7 +98,7 @@ public class CLIOptions implements Callable<Integer> {
 
     @CommandLine.Option(
             names = "--long-methods",
-            description = "Detect long methods (default: 30 lines)",
+            description = "Detect long methods (default: 30 lines; e.g. --long-methods 50)",
             arity = "0..1"
     )
     public void setLongMethodsMaxLines(String value) {
@@ -112,28 +112,28 @@ public class CLIOptions implements Callable<Integer> {
 
     @CommandLine.Option(
             names = "--forbid-methods",
-            description = "Forbidden method calls (e.g. System.out.println)",
+            description = "Forbid method calls by name or fully qualified name, comma-separated (e.g. println,java.lang.Math.abs). A simple name such as 'abs' forbids all methods with that name.",
             split = ","
     )
-    List<String> forbiddenMethods = new ArrayList<>();;
+    List<String> forbiddenMethods = new ArrayList<>();
 
     @CommandLine.Option(
             names = "--forbid-types",
-            description = "Forbidden types (e.g. int)",
+            description = "Forbid types by simple or fully qualified name, comma-separated (e.g. String,java.lang.String,int).",
             split = ","
     )
-    List<String> forbiddenTypes = new ArrayList<>();;
+    List<String> forbiddenTypes = new ArrayList<>();
 
     @CommandLine.Option(
             names = "--deny",
-            description = "Forbidden calls: caller=callee1,callee2",
+            description = "Forbidden calls: caller=callee1,callee2. Callees support simple or fully qualified names.",
             converter = DeniedCallsConverter.class
     )
     protected List<Map.Entry<String, Set<String>>> forbiddenCalls = new ArrayList<>();
 
     @CommandLine.Option(
             names = "--primitive-mode",
-            description = "Check primitive types: ${COMPLETION-CANDIDATES}",
+            description = "Control primitive type usage: ${COMPLETION-CANDIDATES}",
             arity = "1"
     )
     protected PrimitiveTypeVisitor.Mode primitiveMode;
@@ -148,7 +148,7 @@ public class CLIOptions implements Callable<Integer> {
 
     @CommandLine.Option(
             names = "--forbid-control-flow",
-            description = "Forbidden control flow constructs (break,continue,return,instanceof)",
+            description = "Forbidden control flow constructs, comma-separated. Supported values: BREAK,CONTINUE,RETURN,INSTANCEOF (e.g. BREAK,RETURN). Values must be uppercase.",
             split = ","
     )
     protected Set<ControlFlowRule> forbiddenControlFlow = EnumSet.noneOf(ControlFlowRule.class);
@@ -161,31 +161,32 @@ public class CLIOptions implements Callable<Integer> {
 
     @Override
     public Integer call() {
-        CLIOptionsConfig config = CLIOptionsConfig.fromCLI(this);
-
         try {
+            CLIOptionsConfig config = CLIOptionsConfig.fromCLI(this);
+
             if (file.isDirectory()) {
                 handleProject(file, config);
             } else {
                 ProjectContext projectContext = new ProjectContext();
                 List<File> sourceFiles = List.of(file);
-                handlePreProject(sourceFiles, projectContext);
+                handlePreProject(sourceFiles, config, projectContext);
                 handleSingleFile(file, config, projectContext, null);
             }
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid input: " + e.getMessage());
+            return 2;
+        } catch (IOException e) {
+            System.err.println("Could not read file: " + e.getMessage());
+            return 3;
+        } catch (IllegalStateException e) {
+            System.err.println("Internal parser error: " + e.getMessage());
+            return 4;
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Unexpected error.");
             return 1;
         }
 
         return 0;
-    }
-
-    private Language parseLanguage(String lang) {
-        return switch (lang.toLowerCase()) {
-            case "java" -> Language.JAVA;
-            case "c" -> Language.C;
-            default -> throw new IllegalArgumentException("Unknown language: " + lang);
-        };
     }
 
     private List<File> collectSourceFiles(File root, Language lang) throws IOException {
@@ -213,7 +214,7 @@ public class CLIOptions implements Callable<Integer> {
     ) throws Exception {
 
         LanguageParser<?> parser =
-                ParserFactory.createParser(file, sourceRoot);
+                ParserFactory.createParser(file, sourceRoot, config);
 
         var context = new RuleContext(file);
 
@@ -225,30 +226,24 @@ public class CLIOptions implements Callable<Integer> {
     }
 
     private void handleProject(File dir, CLIOptionsConfig config) throws Exception {
-        if (language == null) {
-            throw new IllegalArgumentException(
-                    "Project directory requires --lang java or --lang c"
-            );
-        }
-
-        var projectLang = parseLanguage(language);
+        var projectLang = config.getLang();
 
         List<File> sourceFiles = collectSourceFiles(dir, projectLang);
 
         ProjectContext projectContext = new ProjectContext();
-        handlePreProject(sourceFiles, projectContext);
+        handlePreProject(sourceFiles, config, projectContext);
 
         for (File f : sourceFiles) {
             handleSingleFile(f, config, projectContext, dir);
         }
     }
 
-    private void handlePreProject(List<File> sourceFiles, ProjectContext projectContext) throws Exception {
+    private void handlePreProject(List<File> sourceFiles, CLIOptionsConfig config, ProjectContext projectContext) throws Exception {
         for (File f : sourceFiles) {
-            LanguageParser<?> parser = ParserFactory.createParser(f);
+            LanguageParser<?> parser = ParserFactory.createParser(f, config);
             Object ast = parser.parse();
 
-            if (parser.getLanguage() == Language.JAVA) {
+            if (config.getLang() == Language.JAVA) {
                 new ProjectClassCollectorAnalyzer(projectContext)
                         .runVisitor((CompilationUnit) ast);
             }

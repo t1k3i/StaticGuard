@@ -1,6 +1,7 @@
 package com.staticguard.parser;
 
 import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
 import com.github.javaparser.ParserConfiguration;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.symbolsolver.JavaSymbolSolver;
@@ -10,7 +11,6 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeS
 import com.staticguard.cli.CLIOptionsConfig;
 import com.staticguard.common.ProjectContext;
 import com.staticguard.common.RuleContext;
-import com.staticguard.enums.Language;
 import com.staticguard.handlers.JavaHandler;
 
 import java.io.File;
@@ -21,18 +21,17 @@ public class JavaLanguageParser extends LanguageParser<CompilationUnit> {
     private final File sourceRoot;
 
     public JavaLanguageParser(File file, File sourceRoot) {
-        super(file, Language.JAVA);
+        super(file);
         this.sourceRoot = sourceRoot;
     }
 
     public JavaLanguageParser(File file) {
-        super(file, Language.JAVA);
+        super(file);
         this.sourceRoot = null;
     }
 
     @Override
     public CompilationUnit parse() throws FileNotFoundException {
-
         CombinedTypeSolver typeSolver = new CombinedTypeSolver();
         typeSolver.add(new ReflectionTypeSolver());
         if (sourceRoot != null) {
@@ -50,9 +49,18 @@ public class JavaLanguageParser extends LanguageParser<CompilationUnit> {
 
         JavaParser parser = new JavaParser(config);
 
-        return parser.parse(file)
-                .getResult()
-                .orElseThrow();
+        ParseResult<CompilationUnit> result = parser.parse(file);
+
+        if (!result.isSuccessful()) {
+            throw new IllegalArgumentException(
+                    "Failed to parse " + file.getName()
+            );
+        }
+
+        return result.getResult()
+                .orElseThrow(() -> new IllegalStateException(
+                        "Parser returned no compilation unit for: " + file.getName()
+                ));
     }
 
     @Override
