@@ -12,11 +12,7 @@ public enum TypeContext {
     THROWS,
     EXTENDS,
     CATCH, IMPLEMENTS,
-    INSTANCEOF,
-    CLASS_LITERAL,
     RECORD_COMPONENT,
-    METHOD_GENERIC_ARGUMENT,
-    GENERIC_BOUND,
 
     // Only C
     TYPEDEF,
@@ -25,5 +21,7 @@ public enum TypeContext {
     GLOBAL_VARIABLE,
     POINTER,
     FUNCTION_POINTER,
-    SIZEOF
+    SIZEOF,
+    STATIC_METHOD_CALL,
+    STATIC_FIELD_ACCESS
 }

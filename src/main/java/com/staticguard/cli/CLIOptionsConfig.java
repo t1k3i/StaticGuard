@@ -50,6 +50,7 @@ public class CLIOptionsConfig {
             boolean unusedLocals,
             boolean naming,
             Integer longMethodsMaxLines,
+            boolean longMethodsEnabled,
 
             Set<String> forbiddenMethods,
             Set<String> forbiddenTypes,
@@ -74,7 +75,10 @@ public class CLIOptionsConfig {
         this.unusedImports = unusedImports;
         this.unusedLocals = unusedLocals;
         this.naming = naming;
-        this.longMethodsMaxLines = longMethodsMaxLines;
+        if (longMethodsEnabled)
+            this.longMethodsMaxLines = longMethodsMaxLines;
+        else
+            this.longMethodsMaxLines = null;
 
         this.forbiddenMethods = forbiddenMethods;
         this.forbiddenTypes = forbiddenTypes;
@@ -101,6 +105,7 @@ public class CLIOptionsConfig {
                 cli.unusedLocals,
                 cli.naming,
                 cli.longMethodsMaxLines,
+                cli.longMethodsEnabled,
                 new HashSet<>(cli.forbiddenMethods),
                 new HashSet<>(cli.forbiddenTypes),
                 buildForbiddenCalls(cli.forbiddenCalls),

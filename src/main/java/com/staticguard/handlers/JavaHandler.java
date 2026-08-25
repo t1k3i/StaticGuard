@@ -35,7 +35,7 @@ public class JavaHandler implements LanguageHandler<CompilationUnit> {
         }
 
         if (runInfo || config.isClassDependencies()) {
-            var classDependencyRule = new ClassDependencyRule<CompilationUnit>(projectContext.projectClasses);
+            var classDependencyRule = new ClassDependencyRule<>(projectContext.projectClasses);
             manager.addVisitor(
                     new ClassDependencyAnalyzer<>(context, classDependencyRule)
             );

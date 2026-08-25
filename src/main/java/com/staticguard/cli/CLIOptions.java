@@ -96,13 +96,20 @@ public class CLIOptions implements Callable<Integer> {
     )
     protected boolean naming;
 
+    protected Integer longMethodsMaxLines;
+    protected boolean longMethodsEnabled;
+
     @CommandLine.Option(
             names = "--long-methods",
-            description = "Detect long methods (default: ${DEFAULT-VALUE} lines)",
-            defaultValue = "30",
+            description = "Detect long methods (default: 30 lines)",
             arity = "0..1"
     )
-    protected Integer longMethodsMaxLines;
+    public void setLongMethodsMaxLines(String value) {
+        longMethodsEnabled = true;
+        longMethodsMaxLines = value == null || value.isBlank()
+                ? 30
+                : Integer.parseInt(value);
+    }
 
     /* FORBIDDEN */
 

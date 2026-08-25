@@ -1,29 +1,62 @@
 package samples;
 
 import java.util.List;
-import java.util.ArrayList;
 
-/*
- * Sample file for class dependency analysis.
- * Purpose: demonstrate how ClassDependencies uses Helper.
- * Expected relationships (detected by the analyzer):
- *  - samples.ClassDependencies -> Helper [FIELD, INSTANTIATION]
- *
- * This file is intentionally small and self-contained so the test
- * produces a compact, thesis-friendly output.
- */
-public class ClassDependencies {
+public class ClassDependencies extends Base implements Printable {
 
-    // Field dependency: Helper used as a field (should be recorded as FIELD)
-    private Helper helper = new Helper();
+    private Helper helper;
+    private Helper[] helpers;
+    private Status status;
 
-    // Local usage and instantiation demonstrate additional dependency contexts
-    public void test() {
-        List<String> list = new ArrayList<>(); // external dependency on java.util.List / ArrayList
-        helper.help();
+    public ClassDependencies(Helper helper, Status status) {
+        this.helper = helper;
+        this.status = status;
+    }
+
+    public Helper getHelper() {
+        return helper;
+    }
+
+    public List<Helper> getHelpers() throws CustomException {
+        Helper local = new Helper();
+        Helper value = (Helper) local;
+
+        Helper.staticMethod();
+        int x = Helper.STATIC_VALUE;
+
+        try {
+            throw new CustomException();
+        } catch (CustomException e) {
+            throw e;
+        }
+    }
+
+    public void use(Helper parameter) {
+        parameter.help();
+        Status current = Status.ACTIVE;
+    }
+
+    static class Helper {
+        static int STATIC_VALUE = 10;
+
+        static void staticMethod() {
+        }
+
+        void help() {
+        }
+    }
+
+    enum Status {
+        ACTIVE,
+        INACTIVE
     }
 }
 
-class Helper {
-    void help() {}
+class Base {
+}
+
+interface Printable {
+}
+
+class CustomException extends Exception {
 }

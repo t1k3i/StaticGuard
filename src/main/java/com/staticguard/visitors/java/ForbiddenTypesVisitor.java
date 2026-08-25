@@ -2,12 +2,12 @@ package com.staticguard.visitors.java;
 
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.body.*;
-import com.github.javaparser.ast.expr.CastExpr;
-import com.github.javaparser.ast.expr.ObjectCreationExpr;
+import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.CatchClause;
-import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
-import com.staticguard.common.RuleContext;
 import com.github.javaparser.ast.type.*;
+import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
+import com.github.javaparser.resolution.types.ResolvedType;
+import com.staticguard.common.RuleContext;
 import com.staticguard.enums.TypeContext;
 
 import java.util.Set;
@@ -25,30 +25,41 @@ public class ForbiddenTypesVisitor extends VoidVisitorAdapter<RuleContext> {
     private void check(Type type, TypeContext context, Node node, RuleContext ctx) {
         if (type == null) return;
 
-        String name = type.toString();
+        if (forbiddenContexts != null && !forbiddenContexts.contains(context)) return;
 
-        if (forbiddenTypes.contains(name)
-                && (forbiddenContexts == null || forbiddenContexts.contains(context))) {
+        String simpleName = type.isClassOrInterfaceType()
+                ? type.asClassOrInterfaceType().getNameAsString()
+                : type.asString();
 
-            ctx.report(
-                    "Forbidden type usage: " + name + " in context " + context,
-                    node.getBegin().map(p -> p.line).orElse(-1)
-            );
+        if (forbiddenTypes.contains(simpleName)) {
+            report(simpleName, context, node, ctx);
+            return;
+        }
+
+        if (type.isClassOrInterfaceType()) {
+            try {
+                ResolvedType resolved =
+                        type.asClassOrInterfaceType().resolve();
+
+                if (resolved.isReferenceType()) {
+                    String qualifiedName =
+                            resolved.asReferenceType().getQualifiedName();
+
+                    if (forbiddenTypes.contains(qualifiedName)) {
+                        report(qualifiedName, context, node, ctx);
+                    }
+                }
+            } catch (RuntimeException ignored) {
+            }
         }
     }
 
-    /* =========================
-       Fields
-       ========================= */
     @Override
     public void visit(FieldDeclaration n, RuleContext ctx) {
         check(n.getElementType(), TypeContext.FIELD, n, ctx);
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Local variables
-       ========================= */
     @Override
     public void visit(VariableDeclarator n, RuleContext ctx) {
         if (!(n.getParentNode().orElse(null) instanceof FieldDeclaration)) {
@@ -57,18 +68,12 @@ public class ForbiddenTypesVisitor extends VoidVisitorAdapter<RuleContext> {
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Method parameters
-       ========================= */
     @Override
     public void visit(Parameter n, RuleContext ctx) {
         check(n.getType(), TypeContext.PARAMETER, n, ctx);
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Method return types
-       ========================= */
     @Override
     public void visit(MethodDeclaration n, RuleContext ctx) {
         check(n.getType(), TypeContext.RETURN_TYPE, n, ctx);
@@ -77,36 +82,24 @@ public class ForbiddenTypesVisitor extends VoidVisitorAdapter<RuleContext> {
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Object instantiation
-       ========================= */
     @Override
     public void visit(ObjectCreationExpr n, RuleContext ctx) {
         check(n.getType(), TypeContext.INSTANTIATION, n, ctx);
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Casts
-       ========================= */
     @Override
     public void visit(CastExpr n, RuleContext ctx) {
         check(n.getType(), TypeContext.CAST, n, ctx);
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Arrays
-       ========================= */
     @Override
     public void visit(ArrayType n, RuleContext ctx) {
         check(n.getComponentType(), TypeContext.ARRAY_COMPONENT, n, ctx);
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Generics
-       ========================= */
     @Override
     public void visit(ClassOrInterfaceType n, RuleContext ctx) {
         n.getTypeArguments().ifPresent(args ->
@@ -115,22 +108,125 @@ public class ForbiddenTypesVisitor extends VoidVisitorAdapter<RuleContext> {
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Catch clauses
-       ========================= */
     @Override
     public void visit(CatchClause n, RuleContext ctx) {
         check(n.getParameter().getType(), TypeContext.CATCH, n, ctx);
         super.visit(n, ctx);
     }
 
-    /* =========================
-       Inheritance
-       ========================= */
     @Override
     public void visit(ClassOrInterfaceDeclaration n, RuleContext ctx) {
         n.getExtendedTypes().forEach(t -> check(t, TypeContext.EXTENDS, n, ctx));
         n.getImplementedTypes().forEach(t -> check(t, TypeContext.IMPLEMENTS, n, ctx));
         super.visit(n, ctx);
+    }
+
+    @Override
+    public void visit(RecordDeclaration n, RuleContext ctx) {
+        n.getParameters()
+                .forEach(parameter ->
+                        check(
+                                parameter.getType(),
+                                TypeContext.RECORD_COMPONENT,
+                                parameter,
+                                ctx
+                        )
+                );
+
+        super.visit(n, ctx);
+    }
+
+    @Override
+    public void visit(MethodCallExpr n, RuleContext ctx) {
+        try {
+            var method = n.resolve();
+
+            if (method.isStatic()) {
+                String qualifiedName = method
+                        .declaringType()
+                        .getQualifiedName();
+
+                checkStaticType(
+                        qualifiedName,
+                        TypeContext.STATIC_METHOD_CALL,
+                        n,
+                        ctx
+                );
+            }
+        } catch (RuntimeException ignored) {
+        }
+
+        super.visit(n, ctx);
+    }
+
+    @Override
+    public void visit(FieldAccessExpr n, RuleContext ctx) {
+        try {
+            var resolved = n.resolve();
+
+            if (resolved.isField()) {
+                var field = resolved.asField();
+
+                if (field.isStatic()) {
+                    String qualifiedName = field
+                            .declaringType()
+                            .getQualifiedName();
+
+                    checkStaticType(
+                            qualifiedName,
+                            TypeContext.STATIC_FIELD_ACCESS,
+                            n,
+                            ctx
+                    );
+                }
+            } else if (resolved.isEnumConstant()) {
+                String qualifiedName = resolved
+                        .asEnumConstant()
+                        .getType()
+                        .asReferenceType()
+                        .getQualifiedName();
+
+                checkStaticType(
+                        qualifiedName,
+                        TypeContext.STATIC_FIELD_ACCESS,
+                        n,
+                        ctx
+                );
+            }
+        } catch (RuntimeException ignored) {
+        }
+
+        super.visit(n, ctx);
+    }
+
+    private void checkStaticType(
+            String qualifiedName,
+            TypeContext context,
+            Node node,
+            RuleContext ctx) {
+
+        if (forbiddenContexts != null
+                && !forbiddenContexts.contains(context)) {
+            return;
+        }
+
+        String simpleName = qualifiedName.substring(
+                qualifiedName.lastIndexOf('.') + 1
+        );
+
+        if (forbiddenTypes.contains(simpleName)) {
+            report(simpleName, context, node, ctx);
+        }
+
+        if (forbiddenTypes.contains(qualifiedName)) {
+            report(qualifiedName, context, node, ctx);
+        }
+    }
+
+    private void report(String typeName, TypeContext context, Node node, RuleContext ctx) {
+        ctx.report(
+                "Forbidden type usage: " + typeName + " in context " + context,
+                node.getBegin().map(p -> p.line).orElse(-1)
+        );
     }
 }

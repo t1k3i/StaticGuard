@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-@Deprecated
 public class UsedTypes extends ArrayList<String> implements Runnable {
 
     // Field types
@@ -58,6 +57,9 @@ public class UsedTypes extends ArrayList<String> implements Runnable {
         // Inner class usage
         Helper helper = new Helper();
 
+        int staticValue = Helper.getStaticValue();
+        staticValue = Helper.staticValue;
+
         return result;
     }
 
@@ -70,8 +72,14 @@ public class UsedTypes extends ArrayList<String> implements Runnable {
     public static class Helper {
         private String helperName;
 
+        public static int staticValue = 42;
+
         public Helper() {
             this.helperName = "helper";
+        }
+
+        public static int getStaticValue() {
+            return staticValue;
         }
     }
 

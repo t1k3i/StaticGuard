@@ -1,6 +1,4 @@
-import java.io.File;                   // UNUSED
 import java.time.LocalDate;            // USED
-import java.time.LocalDateTime;        // UNUSED
 import java.util.ArrayList;            // USED
 import java.util.List;                 // USED
 
@@ -8,7 +6,7 @@ import services.Student;                // USED
 import services.StudentService;         // USED
 import utils.StudentUtils;              // UNUSED
 
-public class Main {
+public class MainClass {
 
     public static void main(String[] args) {
 
