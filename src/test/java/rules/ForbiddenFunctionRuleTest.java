@@ -42,10 +42,10 @@ class ForbiddenFunctionRuleTest {
 
         var issues = analyze(
                 file,
-                Set.of("printf", "scanf", "malloc")
+                Set.of("printf", "scanf", "malloc", "strcpy")
         );
 
-        assertEquals(9, issues.size(),
+        assertEquals(10, issues.size(),
                 "Should detect all forbidden function calls");
 
         assertIssue(issues, 6, "Forbidden function call: printf");
@@ -57,6 +57,7 @@ class ForbiddenFunctionRuleTest {
         assertIssue(issues, 23, "Forbidden function call: scanf");
         assertIssue(issues, 24, "Forbidden function call: scanf");
         assertIssue(issues, 30, "Forbidden function call: printf");
+        assertIssue(issues, 50, "Forbidden function call: strcpy");
     }
 
     @Test

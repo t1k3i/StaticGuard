@@ -2,8 +2,6 @@ package com.staticguard.visitors.c;
 
 import com.staticguard.CBaseVisitor;
 import com.staticguard.CParser;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -42,40 +40,17 @@ public class CCallGraphVisitor extends CBaseVisitor<Void> {
         if (currentFunction == null)
             return null;
 
-        boolean isDirectFunctionCall = false;
+        if (ctx.LeftParen() != null && !ctx.LeftParen().isEmpty() &&
+                ctx.primaryExpression() != null &&
+                ctx.primaryExpression().Identifier() != null) {
 
-        for (int i = 0; i < ctx.getChildCount(); i++) {
+            String calledFunction = ctx.primaryExpression().Identifier().getText();
 
-            ParseTree child = ctx.getChild(i);
-
-            if (child instanceof TerminalNode terminal) {
-
-                if (terminal.getSymbol().getType()
-                        == CParser.LeftParen) {
-
-                    isDirectFunctionCall = true;
-                    break;
-                }
-            }
-        }
-
-        if (isDirectFunctionCall) {
-
-            var primary = ctx.primaryExpression();
-
-            if (primary != null &&
-                    primary.Identifier() != null) {
-
-                String calledFunction =
-                        primary.Identifier().getText();
-
-                callGraph
-                        .computeIfAbsent(
-                                currentFunction,
-                                k -> new HashSet<>()
-                        )
-                        .add(calledFunction);
-            }
+            callGraph.computeIfAbsent(
+                            currentFunction,
+                            k -> new HashSet<>()
+                    )
+                    .add(calledFunction);
         }
 
         return super.visitPostfixExpression(ctx);

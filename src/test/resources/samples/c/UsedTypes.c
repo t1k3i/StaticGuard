@@ -86,7 +86,7 @@ void processData(
     enum Status status = ACTIVE;
 
     // union variable
-    union Value value;
+    union Value value = {0};
     value.integer = 42;
 
     printf("%s %d\n", message, *ptr);

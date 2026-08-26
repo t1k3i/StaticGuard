@@ -32,3 +32,20 @@ int main(void) {
 
     return 0;
 }
+
+void test_variable(void)
+{
+    int strcpy = 10;
+
+    strcpy = 20;
+    int x = strcpy;
+    strcpy++;
+}
+
+void test_call(void)
+{
+    char a[10];
+    char b[10];
+
+    strcpy(a, b);
+}

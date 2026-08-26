@@ -4,12 +4,13 @@ import com.staticguard.CBaseVisitor;
 import com.staticguard.CParser;
 import com.staticguard.enums.TypeContext;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class CUsedTypesVisitor extends CBaseVisitor<Void> {
+
     private final Map<String, Set<TypeContext>> usedTypes;
+
+    private boolean insideFunction = false;
 
     public CUsedTypesVisitor(Map<String, Set<TypeContext>> usedTypes) {
         this.usedTypes = usedTypes;
@@ -25,38 +26,159 @@ public class CUsedTypesVisitor extends CBaseVisitor<Void> {
                 .add(context);
     }
 
-    /* ===== Function return types ===== */
-    @Override
-    public Void visitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
+    private String getTypeName(
+            CParser.SpecifierQualifierListContext ctx) {
 
-        if (ctx.declarationSpecifiers() != null) {
+        if (ctx == null) {
+            return null;
+        }
 
-            String returnType =
-                    ctx.declarationSpecifiers().getText();
+        List<String> types = new ArrayList<>();
 
-            if (!returnType.equals("void")) {
-                record(returnType, TypeContext.RETURN_TYPE);
+        if (ctx.typeSpecifier() != null) {
+
+            CParser.TypeSpecifierContext typeSpecifier =
+                    ctx.typeSpecifier();
+
+            // struct / union
+            if (typeSpecifier.structOrUnionSpecifier() != null) {
+
+                CParser.StructOrUnionSpecifierContext struct =
+                        typeSpecifier.structOrUnionSpecifier();
+
+                String result =
+                        struct.structOrUnion().getText();
+
+                if (struct.Identifier() != null) {
+                    result += " " + struct.Identifier().getText();
+                }
+
+                types.add(result);
+            }
+
+            // enum
+            else if (typeSpecifier.enumSpecifier() != null) {
+
+                CParser.EnumSpecifierContext enumCtx =
+                        typeSpecifier.enumSpecifier();
+
+                String result = "enum";
+
+                if (enumCtx.Identifier() != null) {
+                    result += " " + enumCtx.Identifier().getText();
+                }
+
+                types.add(result);
+            }
+
+            // normal type
+            else {
+                types.add(typeSpecifier.getText());
             }
         }
 
-        return super.visitFunctionDefinition(ctx);
+        if (ctx.specifierQualifierList() != null) {
+
+            String nested =
+                    getTypeName(ctx.specifierQualifierList());
+
+            if (nested != null && !nested.isEmpty()) {
+                types.add(nested);
+            }
+        }
+
+        return String.join(" ", types);
     }
 
-    /* ===== Function parameters ===== */
+    private String getTypeName(
+            List<CParser.DeclarationSpecifierContext> specifiers) {
+
+        return specifiers.stream()
+                .filter(specifier -> specifier.typeSpecifier() != null)
+                .map(specifier -> {
+
+                    CParser.TypeSpecifierContext typeSpecifier =
+                            specifier.typeSpecifier();
+
+                    if (typeSpecifier.structOrUnionSpecifier() != null) {
+
+                        CParser.StructOrUnionSpecifierContext struct =
+                                typeSpecifier.structOrUnionSpecifier();
+
+                        return struct.structOrUnion().getText()
+                                + " "
+                                + struct.Identifier().getText();
+                    }
+
+                    if (typeSpecifier.enumSpecifier() != null) {
+                        CParser.EnumSpecifierContext enumCtx =
+                                typeSpecifier.enumSpecifier();
+
+                        String result = "enum";
+
+                        if (enumCtx.Identifier() != null) {
+                            result += " " + enumCtx.Identifier().getText();
+                        }
+
+                        return result;
+                    }
+
+                    return typeSpecifier.getText();
+                })
+                .collect(java.util.stream.Collectors.joining(" "));
+    }
+
+    @Override
+    public Void visitFunctionDefinition(
+            CParser.FunctionDefinitionContext ctx) {
+
+        if (ctx.declarationSpecifiers() != null) {
+            String returnType = getTypeName(ctx.declarationSpecifiers().declarationSpecifier());
+
+            record(returnType, TypeContext.RETURN_TYPE);
+        }
+
+        insideFunction = true;
+
+        super.visitFunctionDefinition(ctx);
+
+        insideFunction = false;
+
+        return null;
+    }
+
     @Override
     public Void visitParameterDeclaration(
             CParser.ParameterDeclarationContext ctx) {
 
-        if (ctx.declarationSpecifiers() != null) {
+        String typeName = null;
 
-            String type =
-                    ctx.declarationSpecifiers().getText();
-            record(type, TypeContext.PARAMETER);
+        if (ctx.declarationSpecifiers() != null) {
+            typeName = getTypeName(ctx.declarationSpecifiers().declarationSpecifier());
         }
+        else if (ctx.declarationSpecifiers2() != null) {
+            typeName = getTypeName(ctx.declarationSpecifiers2().declarationSpecifier());
+        }
+
+        record(typeName, TypeContext.PARAMETER);
+
         return super.visitParameterDeclaration(ctx);
     }
 
-    /* ===== Global/local variables + typedefs ===== */
+    @Override
+    public Void visitStructDeclaration(
+            CParser.StructDeclarationContext ctx) {
+
+        if (ctx.specifierQualifierList() != null) {
+
+            String typeName = getTypeName(ctx.specifierQualifierList());
+
+            record(typeName, TypeContext.FIELD);
+        }
+
+        return super.visitStructDeclaration(ctx);
+    }
+
     @Override
     public Void visitDeclaration(
             CParser.DeclarationContext ctx) {
@@ -65,154 +187,106 @@ public class CUsedTypesVisitor extends CBaseVisitor<Void> {
             return super.visitDeclaration(ctx);
         }
 
-        String specifiers = ctx.declarationSpecifiers().getText();
+        String typeName = getTypeName(ctx.declarationSpecifiers().declarationSpecifier());
 
-        // ===== Typedef =====
-        if (specifiers.startsWith("typedef")) {
+        if (isTypedef(ctx)) {
 
-            String type = specifiers.substring("typedef".length());
-            record(
-                    type,
-                    TypeContext.TYPEDEF
-            );
+            List<CParser.DeclarationSpecifierContext> specifiers =
+                    ctx.declarationSpecifiers().declarationSpecifier();
 
-        } else {
+            // Check if the last declaration specifier is a typedefName
+            CParser.DeclarationSpecifierContext last =
+                    specifiers.get(specifiers.size() - 1);
 
-            // ===== Global/local variable =====
-            TypeContext context;
-            if (ctx.getParent()
-                    instanceof CParser.TranslationUnitContext) {
-                context = TypeContext.GLOBAL_VARIABLE;
-            } else {
-                context = TypeContext.LOCAL_VARIABLE;
+            if (last.typeSpecifier() != null
+                    && last.typeSpecifier().typedefName() != null) {
+
+                // Remove the typedef name from the type
+                specifiers = specifiers.subList(0, specifiers.size() - 1);
+
+                typeName = getTypeName(specifiers);
             }
-            record(
-                    specifiers,
-                    context
-            );
+
+            record(typeName, TypeContext.TYPEDEF);
         }
+        else if (ctx.initDeclaratorList() == null) {
+            return super.visitDeclaration(ctx);
+        }
+        else if (insideFunction) {
+            record(typeName, TypeContext.LOCAL_VARIABLE);
+        }
+        else {
+            record(typeName, TypeContext.GLOBAL_VARIABLE);
+        }
+
         return super.visitDeclaration(ctx);
     }
 
-    @Override
-    public Void visitStructOrUnionSpecifier(
-            CParser.StructOrUnionSpecifierContext ctx) {
-
-        String text = ctx.getText();
-        if (text.startsWith("struct")) {
-            record(
-                    text,
-                    TypeContext.STRUCT
-            );
-        } else if (text.startsWith("union")) {
-            record(
-                    text,
-                    TypeContext.UNION
-            );
-        }
-
-        return super.visitStructOrUnionSpecifier(ctx);
-    }
-
-    /* ===== Enum types ===== */
-    @Override
-    public Void visitEnumSpecifier(
-            CParser.EnumSpecifierContext ctx) {
-
-        if (ctx.Identifier() != null) {
-            record(
-                    "enum " + ctx.Identifier().getText(),
-                    TypeContext.ENUM
-            );
-        }
-        return super.visitEnumSpecifier(ctx);
-    }
-
-    /* ===== Struct fields ===== */
-    @Override
-    public Void visitStructDeclaration(
-            CParser.StructDeclarationContext ctx) {
-
-        if (ctx.specifierQualifierList() != null) {
-            record(
-                    ctx.specifierQualifierList().getText(),
-                    TypeContext.FIELD
-            );
-        }
-        return super.visitStructDeclaration(ctx);
-    }
-
-    /* ===== Pointer types ===== */
-    @Override
-    public Void visitPointer(
-            CParser.PointerContext ctx) {
-
-        record(
-                ctx.getText(),
-                TypeContext.POINTER
-        );
-        return super.visitPointer(ctx);
-    }
-
-    /* ===== Function pointers ===== */
-    @Override
-    public Void visitDeclarator(
-            CParser.DeclaratorContext ctx) {
-
-        String text = ctx.getText();
-        if (text.contains("(")
-                && text.contains("*")) {
-
-            record(
-                    text,
-                    TypeContext.FUNCTION_POINTER
-            );
-        }
-        return super.visitDeclarator(ctx);
-    }
-
-    /* ===== Casts ===== */
     @Override
     public Void visitCastExpression(
             CParser.CastExpressionContext ctx) {
 
         if (ctx.typeName() != null) {
-            record(
-                    ctx.typeName().getText(),
-                    TypeContext.CAST
-            );
+
+            String typeName =
+                    getTypeName(ctx.typeName().specifierQualifierList());
+
+            record(typeName, TypeContext.CAST);
         }
+
         return super.visitCastExpression(ctx);
     }
 
-    /* ===== Arrays ===== */
-    @Override
-    public Void visitDirectDeclarator(
-            CParser.DirectDeclaratorContext ctx) {
+    private boolean isTypedef(CParser.DeclarationContext ctx) {
 
-        if (ctx.LeftBracket() != null) {
-            record(
-                    ctx.getParent().getText(),
-                    TypeContext.ARRAY_COMPONENT
-            );
+        for (CParser.DeclarationSpecifierContext specifier : ctx.declarationSpecifiers().declarationSpecifier()) {
+
+            if (specifier.storageClassSpecifier() != null
+                    && specifier.storageClassSpecifier()
+                    .getText()
+                    .equals("typedef")) {
+
+                return true;
+            }
         }
-        return super.visitDirectDeclarator(ctx);
+
+        return false;
     }
 
-    /* ===== sizeof ===== */
-    @Override
-    public Void visitUnaryExpression(
-            CParser.UnaryExpressionContext ctx) {
+    private boolean isTypeDefinition(CParser.DeclarationContext ctx) {
 
-        String text = ctx.getText();
-        if (text.startsWith("sizeof")) {
-            record(
-                    text.replace("sizeof", "")
-                            .replace("(", "")
-                            .replace(")", ""),
-                    TypeContext.SIZEOF
-            );
+        for (CParser.DeclarationSpecifierContext specifier
+                : ctx.declarationSpecifiers().declarationSpecifier()) {
+
+            if (specifier.typeSpecifier() != null) {
+
+                CParser.TypeSpecifierContext typeSpecifier =
+                        specifier.typeSpecifier();
+
+                if (typeSpecifier.structOrUnionSpecifier() != null) {
+
+                    CParser.StructOrUnionSpecifierContext struct =
+                            typeSpecifier.structOrUnionSpecifier();
+
+                    // Has {...} -> actual struct/union definition
+                    if (struct.LeftBrace() != null) {
+                        return true;
+                    }
+                }
+
+                if (typeSpecifier.enumSpecifier() != null) {
+
+                    CParser.EnumSpecifierContext enumCtx =
+                            typeSpecifier.enumSpecifier();
+
+                    // Has {...} -> enum definition
+                    if (enumCtx.LeftBrace() != null) {
+                        return true;
+                    }
+                }
+            }
         }
-        return super.visitUnaryExpression(ctx);
+
+        return false;
     }
 }

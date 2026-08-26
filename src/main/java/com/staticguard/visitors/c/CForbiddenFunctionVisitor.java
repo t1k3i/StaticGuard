@@ -3,9 +3,10 @@ package com.staticguard.visitors.c;
 import com.staticguard.CBaseVisitor;
 import com.staticguard.CParser;
 import com.staticguard.common.RuleContext;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Set;
+
+import static com.staticguard.visitors.c.CVisitorHelper.report;
 
 public class CForbiddenFunctionVisitor extends CBaseVisitor<Void> {
     private final RuleContext context;
@@ -16,18 +17,13 @@ public class CForbiddenFunctionVisitor extends CBaseVisitor<Void> {
         this.forbiddenCalls = forbiddenCalls;
     }
 
-    private void report(String message, ParserRuleContext ctx, RuleContext context) {
-        int line = ctx != null && ctx.getStart() != null ? ctx.getStart().getLine() : -1;
-        context.report(message, line);
-    }
-
     @Override
     public Void visitPostfixExpression(CParser.PostfixExpressionContext ctx) {
         super.visitPostfixExpression(ctx);
 
         if (ctx.primaryExpression() != null &&
                 ctx.primaryExpression().Identifier() != null &&
-                ctx.LeftParen() != null) {
+                ctx.LeftParen() != null && !ctx.LeftParen().isEmpty()) {
 
             String functionName = ctx.primaryExpression().Identifier().getText();
 

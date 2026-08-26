@@ -41,6 +41,97 @@ class UsedTypesRuleTest {
     }
 
     @Test
+    void cUsedTypes() throws Exception {
+        File file = new File(
+                "src/test/resources/samples/c/UsedTypes.c"
+        );
+
+        var usedTypes = analyze(file);
+
+        assertEquals(Set.of(
+                "Callback",
+                "Person",
+                "Size",
+                "char",
+                "enum Status",
+                "float",
+                "int",
+                "size_t",
+                "struct Person",
+                "union Value",
+                "unsigned long",
+                "void"
+        ), usedTypes.keySet());
+
+        assertEquals(Set.of(
+                TypeContext.LOCAL_VARIABLE,
+                TypeContext.PARAMETER
+        ), usedTypes.get("Callback"));
+
+        assertEquals(Set.of(
+                TypeContext.LOCAL_VARIABLE,
+                TypeContext.RETURN_TYPE,
+                TypeContext.CAST,
+                TypeContext.GLOBAL_VARIABLE
+        ), usedTypes.get("Person"));
+
+        assertEquals(Set.of(
+                TypeContext.FIELD
+        ), usedTypes.get("Size"));
+
+        assertEquals(Set.of(
+                TypeContext.FIELD,
+                TypeContext.LOCAL_VARIABLE,
+                TypeContext.PARAMETER,
+                TypeContext.GLOBAL_VARIABLE
+        ), usedTypes.get("char"));
+
+        assertEquals(Set.of(
+                TypeContext.FIELD,
+                TypeContext.LOCAL_VARIABLE
+        ), usedTypes.get("enum Status"));
+
+        assertEquals(Set.of(
+                TypeContext.FIELD
+        ), usedTypes.get("float"));
+
+        assertEquals(Set.of(
+                TypeContext.FIELD,
+                TypeContext.LOCAL_VARIABLE,
+                TypeContext.PARAMETER,
+                TypeContext.RETURN_TYPE,
+                TypeContext.TYPEDEF,
+                TypeContext.GLOBAL_VARIABLE
+        ), usedTypes.get("int"));
+
+        assertEquals(Set.of(
+                TypeContext.LOCAL_VARIABLE,
+                TypeContext.PARAMETER
+        ), usedTypes.get("size_t"));
+
+        assertEquals(Set.of(
+                TypeContext.FIELD,
+                TypeContext.PARAMETER,
+                TypeContext.TYPEDEF
+        ), usedTypes.get("struct Person"));
+
+        assertEquals(Set.of(
+                TypeContext.FIELD,
+                TypeContext.LOCAL_VARIABLE
+        ), usedTypes.get("union Value"));
+
+        assertEquals(Set.of(
+                TypeContext.TYPEDEF
+        ), usedTypes.get("unsigned long"));
+
+        assertEquals(Set.of(
+                TypeContext.PARAMETER,
+                TypeContext.RETURN_TYPE,
+                TypeContext.CAST
+        ), usedTypes.get("void"));
+    }
+
+    @Test
     void javaUsedTypes() throws Exception {
         File file = new File(
                 "src/test/resources/samples/java/UsedTypes.java"

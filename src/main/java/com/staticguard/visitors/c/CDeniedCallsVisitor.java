@@ -3,10 +3,11 @@ package com.staticguard.visitors.c;
 import com.staticguard.CBaseVisitor;
 import com.staticguard.CParser;
 import com.staticguard.common.RuleContext;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Map;
 import java.util.Set;
+
+import static com.staticguard.visitors.c.CVisitorHelper.report;
 
 public class CDeniedCallsVisitor extends CBaseVisitor<Void> {
     private final RuleContext context;
@@ -18,14 +19,6 @@ public class CDeniedCallsVisitor extends CBaseVisitor<Void> {
     }
 
     private String currentFunction = null;
-
-    private void report(String message, ParserRuleContext ctx) {
-        if (ctx != null && ctx.getStart() != null) {
-            context.report(message, ctx.getStart().getLine());
-        } else {
-            context.report(message, -1);
-        }
-    }
 
     @Override
     public Void visitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
@@ -50,7 +43,7 @@ public class CDeniedCallsVisitor extends CBaseVisitor<Void> {
         if (currentFunction != null
                 && ctx.primaryExpression() != null
                 && ctx.primaryExpression().Identifier() != null
-                && ctx.LeftParen() != null) {
+                && ctx.LeftParen() != null && !ctx.LeftParen().isEmpty()) {
 
             String calledFunction =
                     ctx.primaryExpression().Identifier().getText();
@@ -60,7 +53,8 @@ public class CDeniedCallsVisitor extends CBaseVisitor<Void> {
                 report(
                         "Function '" + currentFunction +
                                 "' is not allowed to call '" + calledFunction + "'",
-                        ctx
+                        ctx,
+                        context
                 );
             }
         }

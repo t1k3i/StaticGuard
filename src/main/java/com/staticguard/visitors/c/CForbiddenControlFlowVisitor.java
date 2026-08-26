@@ -4,9 +4,10 @@ import com.staticguard.CBaseVisitor;
 import com.staticguard.CParser;
 import com.staticguard.common.RuleContext;
 import com.staticguard.enums.ControlFlowRule;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.Set;
+
+import static com.staticguard.visitors.c.CVisitorHelper.report;
 
 public class CForbiddenControlFlowVisitor extends CBaseVisitor<Void> {
     private final RuleContext context;
@@ -15,11 +16,6 @@ public class CForbiddenControlFlowVisitor extends CBaseVisitor<Void> {
     public CForbiddenControlFlowVisitor(RuleContext context, Set<ControlFlowRule> forbiddenRules) {
         this.context = context;
         this.forbiddenRules = forbiddenRules;
-    }
-
-    private void report(String message, ParserRuleContext ctx, RuleContext context) {
-        int line = ctx != null && ctx.getStart() != null ? ctx.getStart().getLine() : -1;
-        context.report(message, line);
     }
 
     @Override

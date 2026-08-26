@@ -7,6 +7,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.regex.Pattern;
 
+import static com.staticguard.visitors.c.CVisitorHelper.report;
+
 public class CNamingVisitor extends CBaseVisitor<Void> {
 
     private static final Pattern CAMEL_CASE =
@@ -22,21 +24,13 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
         this.context = context;
     }
 
-    private void report(String message, ParserRuleContext ctx) {
-        if (ctx != null && ctx.getStart() != null) {
-            context.report(message, ctx.getStart().getLine());
-        } else {
-            context.report(message, -1);
-        }
-    }
-
     private void checkCamelCase(
             String name,
             String type,
             ParserRuleContext ctx
     ) {
         if (!CAMEL_CASE.matcher(name).matches()) {
-            report(type + " name should be camelCase: " + name, ctx);
+            report(type + " name should be camelCase: " + name, ctx, context);
         }
     }
 
@@ -46,7 +40,7 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
             ParserRuleContext ctx
     ) {
         if (!PASCAL_CASE.matcher(name).matches()) {
-            report(type + " name should be PascalCase: " + name, ctx);
+            report(type + " name should be PascalCase: " + name, ctx, context);
         }
     }
 
@@ -56,7 +50,7 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
             ParserRuleContext ctx
     ) {
         if (!UPPER_SNAKE_CASE.matcher(name).matches()) {
-            report(type + " name should be UPPER_SNAKE_CASE: " + name, ctx);
+            report(type + " name should be UPPER_SNAKE_CASE: " + name, ctx, context);
         }
     }
 
@@ -72,7 +66,8 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
             if (!CAMEL_CASE.matcher(name).matches()) {
                 report(
                         "Function name should be camelCase: " + name,
-                        ctx
+                        ctx,
+                        context
                 );
             }
         }
