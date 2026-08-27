@@ -20,15 +20,15 @@ union ForbiddenUnion {
 
 /* Global */
 
-int globalInt;
-unsigned int globalUnsignedInt;
-signed long globalSignedLong;
-long long globalLongLong;
+int globalInt = 0;
+unsigned int globalUnsignedInt = 0;
+signed long globalSignedLong = 0;
+long long globalLongLong = 0;
 
-Node globalNode;
-struct ForbiddenStruct globalStruct;
+Node globalNode = {0};
+struct ForbiddenStruct globalStruct = {0};
 enum Status globalStatus;
-union ForbiddenUnion globalUnion;
+union ForbiddenUnion globalUnion = {0};
 
 /* Function */
 
@@ -38,17 +38,17 @@ Node createNode(
         enum Status status,
         union ForbiddenUnion data) {
 
-    Node localNode;
-    struct ForbiddenStruct localStruct;
+    Node localNode = {0};
+    struct ForbiddenStruct localStruct = {0};
     enum Status localStatus;
-    union ForbiddenUnion localUnion;
+    union ForbiddenUnion localUnion = {0};
 
-    int localInt;
-    unsigned long localUnsignedLong;
-    signed char localSignedChar;
+    int localInt = 0;
+    unsigned long localUnsignedLong = 0;
+    signed char localSignedChar = 0;
 
-    Node *nodePointer;
-    struct ForbiddenStruct *structPointer;
+    Node *nodePointer = NULL;
+    struct ForbiddenStruct *structPointer = NULL;
 
     return localNode;
 }
@@ -63,4 +63,7 @@ void process(
 
     enum Status status;
     union ForbiddenUnion data;
+
+    double b = 0.0;
+    int a = (int)b;
 }

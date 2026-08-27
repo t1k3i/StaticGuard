@@ -26,7 +26,7 @@ class ForbiddenFunctionRuleTest {
         ForbiddenFunctionRule<Object> rule = new ForbiddenFunctionRule<>(forbidden);
 
         GenericAnalyzer<Object> analyzer = new GenericAnalyzer<>(context, rule);
-        VisitorManager<Object> manager = new VisitorManager<>(ast);
+        VisitorManager<Object> manager = new VisitorManager<>(ast, context);
 
         manager.addVisitor(analyzer);
         manager.runVisitors();

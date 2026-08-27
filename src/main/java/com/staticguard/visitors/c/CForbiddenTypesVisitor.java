@@ -6,12 +6,18 @@ import com.staticguard.common.RuleContext;
 import com.staticguard.enums.TypeContext;
 import org.antlr.v4.runtime.ParserRuleContext;
 
+import java.util.List;
 import java.util.Set;
+
+import static com.staticguard.visitors.c.CVisitorHelper.getTypeName;
+import static com.staticguard.visitors.c.CVisitorHelper.isTypedef;
 
 public class CForbiddenTypesVisitor extends CBaseVisitor<Void> {
     private final RuleContext context;
     private final Set<String> forbiddenTypes;
     private final Set<TypeContext> forbiddenContexts;
+
+    private boolean insideFunction = false;
 
     public CForbiddenTypesVisitor(RuleContext context,
                                   Set<String> forbiddenTypes,
@@ -21,9 +27,6 @@ public class CForbiddenTypesVisitor extends CBaseVisitor<Void> {
         this.forbiddenContexts = forbiddenContexts;
     }
 
-    /* =========================
-       Helper
-       ========================= */
     private void check(String typeName, TypeContext ctxType, ParserRuleContext ctx) {
         if (typeName == null) return;
 
@@ -38,82 +41,95 @@ public class CForbiddenTypesVisitor extends CBaseVisitor<Void> {
         }
     }
 
-    /* =========================
-       Variables (global & local)
-       ========================= */
-    @Override
-    public Void visitDeclaration(CParser.DeclarationContext ctx) {
-        if (ctx.declarationSpecifiers() != null) {
-            String type = ctx.declarationSpecifiers().getText();
-            check(type, TypeContext.LOCAL_VARIABLE, ctx);
-        }
-        return super.visitDeclaration(ctx);
-    }
-
-    /* =========================
-       Function return types
-       ========================= */
     @Override
     public Void visitFunctionDefinition(CParser.FunctionDefinitionContext ctx) {
+
         if (ctx.declarationSpecifiers() != null) {
-            String returnType = ctx.declarationSpecifiers().getText();
+            String returnType = getTypeName(ctx.declarationSpecifiers().declarationSpecifier());
             check(returnType, TypeContext.RETURN_TYPE, ctx);
         }
-        return super.visitFunctionDefinition(ctx);
+
+        insideFunction = true;
+
+        super.visitFunctionDefinition(ctx);
+
+        insideFunction = false;
+
+        return null;
     }
 
-    /* =========================
-       Function parameters
-       ========================= */
     @Override
     public Void visitParameterDeclaration(CParser.ParameterDeclarationContext ctx) {
+
+        String typeName = null;
+
         if (ctx.declarationSpecifiers() != null) {
-            String type = ctx.declarationSpecifiers().getText();
-            check(type, TypeContext.PARAMETER, ctx);
+            typeName = getTypeName(ctx.declarationSpecifiers().declarationSpecifier());
+        } else if (ctx.declarationSpecifiers2() != null) {
+            typeName = getTypeName(ctx.declarationSpecifiers2().declarationSpecifier());
         }
+
+        check(typeName, TypeContext.PARAMETER, ctx);
+
         return super.visitParameterDeclaration(ctx);
     }
 
-    /* =========================
-       Casts
-       ========================= */
+    @Override
+    public Void visitStructDeclaration(CParser.StructDeclarationContext ctx) {
+
+        if (ctx.specifierQualifierList() != null) {
+
+            String typeName = getTypeName(ctx.specifierQualifierList());
+
+            check(typeName, TypeContext.FIELD, ctx);
+        }
+
+        return super.visitStructDeclaration(ctx);
+    }
+
     @Override
     public Void visitCastExpression(CParser.CastExpressionContext ctx) {
+
         if (ctx.typeName() != null) {
-            String type = ctx.typeName().getText();
-            check(type, TypeContext.CAST, ctx);
+
+            String typeName = getTypeName(ctx.typeName().specifierQualifierList());
+
+            check(typeName, TypeContext.CAST, ctx);
         }
+
         return super.visitCastExpression(ctx);
     }
 
-    /* =========================
-       Typedefs
-       ========================= */
     @Override
-    public Void visitTypedefName(CParser.TypedefNameContext ctx) {
-        String name = ctx.getText();
-        check(name, TypeContext.TYPEDEF, ctx);
-        return super.visitTypedefName(ctx);
-    }
+    public Void visitDeclaration(CParser.DeclarationContext ctx) {
 
-    @Override
-    public Void visitStructOrUnionSpecifier(CParser.StructOrUnionSpecifierContext ctx) {
-        if (ctx.Identifier() != null) {
-            String name = ctx.Identifier().getText();
-            TypeContext type =
-                    ctx.structOrUnion().Struct() != null
-                            ? TypeContext.STRUCT
-                            : TypeContext.UNION;
-            check(name, type, ctx);
-        }
-        return super.visitStructOrUnionSpecifier(ctx);
-    }
+        if (ctx.declarationSpecifiers() == null)
+            return super.visitDeclaration(ctx);
 
-    @Override
-    public Void visitEnumSpecifier(CParser.EnumSpecifierContext ctx) {
-        if (ctx.Identifier() != null) {
-            check(ctx.Identifier().getText(), TypeContext.ENUM, ctx);
+        String typeName = getTypeName(ctx.declarationSpecifiers().declarationSpecifier());
+
+        if (isTypedef(ctx)) {
+
+            List<CParser.DeclarationSpecifierContext> specifiers = ctx.declarationSpecifiers().declarationSpecifier();
+
+            CParser.DeclarationSpecifierContext last = specifiers.get(specifiers.size() - 1);
+
+            if (last.typeSpecifier() != null && last.typeSpecifier().typedefName() != null) {
+
+                specifiers = specifiers.subList(0, specifiers.size() - 1);
+
+                typeName = getTypeName(specifiers);
+            }
+
+            check(typeName, TypeContext.TYPEDEF, ctx);
+        } else if (ctx.initDeclaratorList() == null) {
+            return super.visitDeclaration(ctx);
+        } else if (insideFunction) {
+            check(typeName, TypeContext.LOCAL_VARIABLE, ctx);
+        } else {
+            check(typeName, TypeContext.GLOBAL_VARIABLE, ctx);
         }
-        return super.visitEnumSpecifier(ctx);
+
+        return super.visitDeclaration(ctx);
     }
 }

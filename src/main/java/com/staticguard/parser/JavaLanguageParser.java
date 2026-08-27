@@ -65,9 +65,11 @@ public class JavaLanguageParser extends LanguageParser<CompilationUnit> {
 
     @Override
     public void handle(CLIOptionsConfig config, RuleContext context, ProjectContext projectContext) throws Exception {
-        System.out.println("Parsing file: " + file.getName());
+        System.out.println();
+        System.out.println("========================================");
+        System.out.println("Parsing Java file: " + file.getName());
+        System.out.println("========================================");
         var cu = parse();
-        System.out.println("Parsing succeeded.");
         new JavaHandler().handle(cu, config, context, projectContext);
     }
 }

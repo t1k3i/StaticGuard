@@ -36,7 +36,6 @@ public class ForbiddenFieldAccessVisitor extends VoidVisitorAdapter<RuleContext>
                 );
             }
         } catch (Exception ignored) {
-            // Could not resolve the field.
         }
 
         super.visit(n, ctx);

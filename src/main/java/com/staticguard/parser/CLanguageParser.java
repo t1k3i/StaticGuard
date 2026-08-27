@@ -53,9 +53,11 @@ public class CLanguageParser extends LanguageParser<ParseTree> {
 
     @Override
     public void handle(CLIOptionsConfig config, RuleContext context, ProjectContext projectContext) throws Exception {
-        System.out.println("Parsing file: " + file.getName());
+        System.out.println();
+        System.out.println("========================================");
+        System.out.println("Parsing C file: " + file.getName());
+        System.out.println("========================================");
         var root = parse();
-        System.out.println("Parsing succeeded.");
         new CHandler().handle(root, config, context, projectContext);
     }
 }

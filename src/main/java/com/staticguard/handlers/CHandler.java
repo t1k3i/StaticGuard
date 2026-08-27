@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 public class CHandler implements LanguageHandler<ParseTree> {
     @Override
     public void handle(ParseTree root, CLIOptionsConfig config, RuleContext context, ProjectContext projectContext) {
-        VisitorManager<ParseTree> manager = new VisitorManager<>(root);
+        VisitorManager<ParseTree> manager = new VisitorManager<>(root, context);
 
         boolean runInfo = config.isRunInfo();
         boolean runGood = config.isRunGoodPractices();

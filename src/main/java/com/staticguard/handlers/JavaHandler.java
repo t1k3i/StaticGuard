@@ -16,7 +16,7 @@ import com.staticguard.rules.java.UnusedImportsRule;
 public class JavaHandler implements LanguageHandler<CompilationUnit> {
     @Override
     public void handle(CompilationUnit root, CLIOptionsConfig config, RuleContext context, ProjectContext projectContext) {
-        VisitorManager<CompilationUnit> manager = new VisitorManager<>(root);
+        VisitorManager<CompilationUnit> manager = new VisitorManager<>(root, context);
 
         boolean runInfo = config.isRunInfo();
         boolean runGood = config.isRunGoodPractices();

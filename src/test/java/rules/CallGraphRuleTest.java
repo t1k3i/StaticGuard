@@ -2,6 +2,7 @@ package rules;
 
 import com.staticguard.analyzers.CallGraphAnalyzer;
 import com.staticguard.analyzers.VisitorManager;
+import com.staticguard.common.RuleContext;
 import com.staticguard.parser.LanguageParser;
 import com.staticguard.parser.ParserFactory;
 import com.staticguard.rules.CallGraphRule;
@@ -22,7 +23,9 @@ class CallGraphRuleTest {
         CallGraphRule<Object> rule = new CallGraphRule<>();
         CallGraphAnalyzer<Object> analyzer = new CallGraphAnalyzer<>(rule);
 
-        VisitorManager<Object> manager = new VisitorManager<>(ast);
+        RuleContext context = new RuleContext(file);
+
+        VisitorManager<Object> manager = new VisitorManager<>(ast, context);
         manager.addVisitor(analyzer);
         manager.runVisitors();
 

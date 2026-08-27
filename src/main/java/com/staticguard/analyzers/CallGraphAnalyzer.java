@@ -23,7 +23,13 @@ public class CallGraphAnalyzer<T> implements Analyzer<T> {
     }
 
     private void printCallGraph(Map<String, Set<String>> graph) {
-        System.out.println("Call graph:");
+        System.out.println();
+        System.out.println("Call Graph:");
+
+        if (graph.isEmpty()) {
+            System.out.println("  (empty)");
+            return;
+        }
 
         graph.forEach((caller, callees) -> {
             if (callees.isEmpty()) {

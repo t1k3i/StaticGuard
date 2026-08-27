@@ -23,13 +23,13 @@ public class UsedTypesAnalyzer<T> implements Analyzer<T> {
 
     @Override
     public void postVisit() {
-        // Print a header
-        System.out.println("===== Used Types Report =====");
+        System.out.println();
+        System.out.println("Used Types Report:");
 
         Map<String, Set<TypeContext>> usedTypesMap = usedTypesRule.getUsedTypes();
 
         if (usedTypesMap.isEmpty()) {
-            System.out.println("No types used.");
+            System.out.println("  (empty)");
         } else {
             // Sort types alphabetically
             usedTypesMap.keySet().stream()
@@ -41,10 +41,8 @@ public class UsedTypesAnalyzer<T> implements Analyzer<T> {
                                 .map(Enum::name)
                                 .reduce((a, b) -> a + ", " + b)
                                 .orElse("");
-                        System.out.println(typeName + " → used in: " + contextList);
+                        System.out.println("  " + typeName + " → used in: " + contextList);
                     });
         }
-
-        System.out.println("===== End of Report =====");
     }
 }

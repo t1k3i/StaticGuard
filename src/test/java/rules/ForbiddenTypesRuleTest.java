@@ -28,7 +28,7 @@ class ForbiddenTypesRuleTest {
                 new ForbiddenTypesRule<>(forbiddenTypes, null);
 
         GenericAnalyzer<Object> analyzer = new GenericAnalyzer<>(context, rule);
-        VisitorManager<Object> manager = new VisitorManager<>(ast);
+        VisitorManager<Object> manager = new VisitorManager<>(ast, context);
 
         manager.addVisitor(analyzer);
         manager.runVisitors();
@@ -36,7 +36,7 @@ class ForbiddenTypesRuleTest {
         return context.getIssues();
     }
 
-    /*@Test
+    @Test
     void testForbiddenTypesInAllContexts() throws Exception {
         File file = new File(
                 "src/test/resources/samples/c/ForbiddenTypes.c"
@@ -44,25 +44,41 @@ class ForbiddenTypesRuleTest {
 
         var issues = analyze(
                 file,
-                Set.of("Node", "struct ForbiddenStruct", "signed long", "int", "char", "bool", "long long")
+                Set.of(
+                        "Node",
+                        "struct ForbiddenStruct",
+                        "signed long",
+                        "int",
+                        "char",
+                        "bool",
+                        "long long"
+                )
         );
 
-        assertEquals(12, issues.size(),
-                "Should detect all forbidden type usages");
+        assertEquals(21, issues.size(), "Should detect all forbidden type usages");
 
-        assertIssue(issues, 5, "Forbidden type usage: Node");
-        assertIssue(issues, 9, "Forbidden type usage: int");
-        assertIssue(issues, 12, "Forbidden type usage: int");
-        assertIssue(issues, 13, "Forbidden type usage: Node");
-        assertIssue(issues, 14, "Forbidden type usage: ForbiddenStruct");
-        assertIssue(issues, 16, "Forbidden type usage: int");
-        assertIssue(issues, 17, "Forbidden type usage: Node");
-        assertIssue(issues, 22, "Forbidden type usage: Node");
-        assertIssue(issues, 23, "Forbidden type usage: ForbiddenStruct");
-        assertIssue(issues, 30, "Forbidden type usage: Node");
-        assertIssue(issues, 31, "Forbidden type usage: Node");
-        assertIssue(issues, 32, "Forbidden type usage: Node");
-    }*/
+        assertIssue(issues, 4, "Forbidden type usage: int in context FIELD");
+        assertIssue(issues, 8, "Forbidden type usage: int in context FIELD");
+        assertIssue(issues, 17, "Forbidden type usage: int in context FIELD");
+        assertIssue(issues, 23, "Forbidden type usage: int in context GLOBAL_VARIABLE");
+        assertIssue(issues, 25, "Forbidden type usage: signed long in context GLOBAL_VARIABLE");
+        assertIssue(issues, 26, "Forbidden type usage: long long in context GLOBAL_VARIABLE");
+        assertIssue(issues, 28, "Forbidden type usage: Node in context GLOBAL_VARIABLE");
+        assertIssue(issues, 29, "Forbidden type usage: struct ForbiddenStruct in context GLOBAL_VARIABLE");
+        assertIssue(issues, 35, "Forbidden type usage: Node in context RETURN_TYPE");
+        assertIssue(issues, 36, "Forbidden type usage: Node in context PARAMETER");
+        assertIssue(issues, 41, "Forbidden type usage: Node in context LOCAL_VARIABLE");
+        assertIssue(issues, 42, "Forbidden type usage: struct ForbiddenStruct in context LOCAL_VARIABLE");
+        assertIssue(issues, 46, "Forbidden type usage: int in context LOCAL_VARIABLE");
+        assertIssue(issues, 50, "Forbidden type usage: Node in context LOCAL_VARIABLE");
+        assertIssue(issues, 51, "Forbidden type usage: struct ForbiddenStruct in context LOCAL_VARIABLE");
+        assertIssue(issues, 57, "Forbidden type usage: Node in context PARAMETER");
+        assertIssue(issues, 58, "Forbidden type usage: struct ForbiddenStruct in context PARAMETER");
+        assertIssue(issues, 61, "Forbidden type usage: Node in context LOCAL_VARIABLE");
+        assertIssue(issues, 62, "Forbidden type usage: struct ForbiddenStruct in context LOCAL_VARIABLE");
+        assertIssue(issues, 68, "Forbidden type usage: int in context LOCAL_VARIABLE");
+        assertIssue(issues, 68, "Forbidden type usage: int in context CAST");
+    }
 
     @Test
     void detectsAllForbiddenTypes() throws Exception {

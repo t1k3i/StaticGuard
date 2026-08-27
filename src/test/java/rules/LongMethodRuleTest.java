@@ -24,7 +24,7 @@ class LongMethodRuleTest {
                 new GenericAnalyzer<>(context, rule);
 
         VisitorManager<Object> manager =
-                new VisitorManager<>(ast);
+                new VisitorManager<>(ast, context);
 
         manager.addVisitor(analyzer);
         manager.runVisitors();

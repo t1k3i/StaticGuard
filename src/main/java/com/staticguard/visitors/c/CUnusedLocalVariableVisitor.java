@@ -50,7 +50,6 @@ public class CUnusedLocalVariableVisitor extends CBaseVisitor<Void> {
 
         super.visitFunctionDefinition(ctx);
 
-        // Report unused locals and parameters.
         for (Variable variable : declaredVars) {
             if (!variable.used) {
                 context.report(

@@ -39,7 +39,7 @@ class PrimitiveTypeRuleTest {
                 new GenericAnalyzer<>(context, rule);
 
         VisitorManager<CompilationUnit> manager =
-                new VisitorManager<>(ast);
+                new VisitorManager<>(ast, context);
 
         manager.addVisitor(analyzer);
         manager.runVisitors();

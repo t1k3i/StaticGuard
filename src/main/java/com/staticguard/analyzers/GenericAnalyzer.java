@@ -20,6 +20,6 @@ public class GenericAnalyzer<T> implements Analyzer<T> {
 
     @Override
     public void postVisit() {
-        context.getIssues().forEach(System.out::println);
+        // Do nothing
     }
 }

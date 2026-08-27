@@ -24,31 +24,19 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
         this.context = context;
     }
 
-    private void checkCamelCase(
-            String name,
-            String type,
-            ParserRuleContext ctx
-    ) {
+    private void checkCamelCase(String name, String type, ParserRuleContext ctx) {
         if (!CAMEL_CASE.matcher(name).matches()) {
             report(type + " name should be camelCase: " + name, ctx, context);
         }
     }
 
-    private void checkPascalCase(
-            String name,
-            String type,
-            ParserRuleContext ctx
-    ) {
+    private void checkPascalCase(String name, String type, ParserRuleContext ctx) {
         if (!PASCAL_CASE.matcher(name).matches()) {
             report(type + " name should be PascalCase: " + name, ctx, context);
         }
     }
 
-    private void checkUpperSnakeCase(
-            String name,
-            String type,
-            ParserRuleContext ctx
-    ) {
+    private void checkUpperSnakeCase(String name, String type, ParserRuleContext ctx) {
         if (!UPPER_SNAKE_CASE.matcher(name).matches()) {
             report(type + " name should be UPPER_SNAKE_CASE: " + name, ctx, context);
         }
@@ -76,9 +64,7 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitParameterDeclaration(
-            CParser.ParameterDeclarationContext ctx
-    ) {
+    public Void visitParameterDeclaration(CParser.ParameterDeclarationContext ctx) {
         if (ctx.declarator() != null &&
                 ctx.declarator().directDeclarator() != null &&
                 ctx.declarator().directDeclarator().Identifier() != null) {
@@ -99,9 +85,7 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitDeclaration(
-            CParser.DeclarationContext ctx
-    ) {
+    public Void visitDeclaration(CParser.DeclarationContext ctx) {
         if (ctx.initDeclaratorList() != null) {
 
             boolean isConst = ctx.getText().startsWith("const");
@@ -142,9 +126,7 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitStructOrUnionSpecifier(
-            CParser.StructOrUnionSpecifierContext ctx
-    ) {
+    public Void visitStructOrUnionSpecifier(CParser.StructOrUnionSpecifierContext ctx) {
         if (ctx.Identifier() != null) {
             String name = ctx.Identifier().getText();
 
@@ -159,9 +141,7 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitEnumSpecifier(
-            CParser.EnumSpecifierContext ctx
-    ) {
+    public Void visitEnumSpecifier(CParser.EnumSpecifierContext ctx) {
         if (ctx.Identifier() != null) {
             String name = ctx.Identifier().getText();
 
@@ -196,9 +176,7 @@ public class CNamingVisitor extends CBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitTypedefName(
-            CParser.TypedefNameContext ctx
-    ) {
+    public Void visitTypedefName(CParser.TypedefNameContext ctx) {
         if (ctx.Identifier() != null) {
             String name = ctx.Identifier().getText();
 

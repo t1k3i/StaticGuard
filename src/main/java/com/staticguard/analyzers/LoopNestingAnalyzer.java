@@ -22,6 +22,7 @@ public class LoopNestingAnalyzer<T> implements Analyzer<T> {
 
     @Override
     public void postVisit() {
-        System.out.println(rule.getMaxDepth());
+        System.out.println();
+        System.out.println("Max loop nesting depth: " + rule.getMaxDepth());
     }
 }
