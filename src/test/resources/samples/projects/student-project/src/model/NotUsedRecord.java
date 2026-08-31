@@ -2,7 +2,7 @@ package src.model;
 
 import java.util.*;
 
-public record StudentRecord(
+public record NotUsedRecord(
         String name,
         int age
 ) {

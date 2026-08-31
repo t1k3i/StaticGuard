@@ -41,7 +41,7 @@ public class UsedTypesAnalyzer<T> implements Analyzer<T> {
                                 .map(Enum::name)
                                 .reduce((a, b) -> a + ", " + b)
                                 .orElse("");
-                        System.out.println("  " + typeName + " → used in: " + contextList);
+                        System.out.println("  " + typeName + " -> used in: " + contextList);
                     });
         }
     }

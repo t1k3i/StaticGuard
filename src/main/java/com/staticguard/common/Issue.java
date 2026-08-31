@@ -25,6 +25,6 @@ public class Issue {
 
     @Override
     public String toString() {
-        return file + ":" + "Line " + line + ": " + message;
+        return file + ":" + " Line " + line + ": " + message;
     }
 }
